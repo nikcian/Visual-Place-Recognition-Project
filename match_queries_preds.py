@@ -1,4 +1,3 @@
-
 import os
 import sys
 import argparse
@@ -28,7 +27,8 @@ def parse_arguments():
         choices=available_models,
         help="choose your matcher",
     )
-    parser.add_argument("--device", type=str, default=get_default_device(), choices=["cpu", "cuda"])
+    # MODIFICA QUI: Rimosso choices=["cpu", "cuda"] per permettere "mps"
+    parser.add_argument("--device", type=str, default=get_default_device(), help="device to use (cpu, cuda, mps)")
     parser.add_argument("--im-size", type=int, default=512, help="resize img to im_size x im_size")
     parser.add_argument("--num-preds", type=int, default=100, help="number of predictions to match")
     parser.add_argument("--start-query", type=int, default=-1, help="query to start from")
@@ -38,6 +38,15 @@ def parse_arguments():
 
 def main(args):
     device = args.device
+    
+    # MODIFICA QUI: Aggiunta logica per forzare MPS su Mac se l'utente non specifica nulla o se vuole mps
+    if device == "mps" and not torch.backends.mps.is_available():
+        print("Warning: MPS not available, falling back to CPU")
+        device = "cpu"
+    elif device == "cuda" and not torch.cuda.is_available():
+         print("Warning: CUDA not available, falling back to CPU")
+         device = "cpu"
+
     matcher_name = args.matcher
     img_size = args.im_size
     num_preds = args.num_preds
