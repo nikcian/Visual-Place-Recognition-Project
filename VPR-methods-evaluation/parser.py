@@ -1,4 +1,13 @@
 import argparse
+import torch  # <-- AGGIUNGI QUESTO IMPORT
+
+
+def _default_device() -> str:
+    if torch.backends.mps.is_available():
+        return "mps"
+    if torch.cuda.is_available():
+        return "cuda"
+    return "cpu"
 
 
 def parse_arguments():
@@ -56,7 +65,13 @@ def parse_arguments():
     parser.add_argument(
         "--log_dir", type=str, default="default", help="experiment name, output logs will be saved under logs/log_dir"
     )
-    parser.add_argument("--device", type=str, default="cuda", choices=["cuda", "cpu"], help="_")
+    parser.add_argument(
+        "--device",
+        type=str,
+        default=_default_device(),
+        choices=["cpu", "cuda", "mps"],
+        help="device to use",
+    )
     parser.add_argument(
         "--recall_values",
         type=int,
@@ -86,16 +101,11 @@ def parse_arguments():
         help="Resizing shape for images (HxW). If a single int is passed, set the"
         "smallest edge of all images to this value, while keeping aspect ratio",
     )
-    parser.add_argument(
-        "--save_descriptors",
-        action="store_true",
-        help="set to True if you want to save the descriptors extracted by the model",
-    )
-    parser.add_argument(
-        "--save_for_uncertainty",
-        action="store_true",
-        help="set to True if you want to save the data for uncertainty estimation",
-    )
+    parser.add_argument("--save_descriptors", action="store_true", help="If set, the descriptors are saved")
+    parser.add_argument("--save_for_uncertainty", action="store_true", help="If set, outputs for uncertainty are saved")
+    
+    parser.add_argument("--faiss_method", type=str, default="l2", choices=["l2", "ip"], help="Metric: l2 (Euclidean) or ip (Dot Product)")
+
     args = parser.parse_args()
 
     args.use_labels = not args.no_labels

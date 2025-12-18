@@ -94,6 +94,31 @@ class MixVPR(nn.Module):
 ### otherwise `self.backbone = ResNet()` will fail
 ### (academic purpose)
 
+class ResNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # Carichiamo la resnet50 standard
+        resnet = torchvision.models.resnet50(weights=None)
+        # Definiamo il modulo 'model' (il nome deve essere 'model' per matchare i pesi)
+        self.model = nn.Module()
+        self.model.conv1 = resnet.conv1
+        self.model.bn1 = resnet.bn1
+        self.model.relu = resnet.relu
+        self.model.maxpool = resnet.maxpool
+        self.model.layer1 = resnet.layer1
+        self.model.layer2 = resnet.layer2
+        self.model.layer3 = resnet.layer3
+
+    def forward(self, x):
+        x = self.model.conv1(x)
+        x = self.model.bn1(x)
+        x = self.model.relu(x)
+        x = self.model.maxpool(x)
+        x = self.model.layer1(x)
+        x = self.model.layer2(x)
+        x = self.model.layer3(x)
+        return x
+
 
 class MixVPRModel(torch.nn.Module):
     def __init__(self, agg_config={}):
@@ -110,6 +135,10 @@ class MixVPRModel(torch.nn.Module):
 
 def get_mixvpr(descriptors_dimension):
     url, filename, out_channels, out_rows = MODELS_INFO[descriptors_dimension]
+    
+    # ESTRAI IL FILE_ID DALL'URL
+    file_id = url.split("/")[-2]
+    
     model_config = {
         "in_channels": 1024,
         "in_h": 20,
@@ -121,11 +150,18 @@ def get_mixvpr(descriptors_dimension):
     }
     model = MixVPRModel(agg_config=model_config)
     file_path = f"trained_models/mixvpr/{filename}"
+    
+    os.makedirs("trained_models/mixvpr", exist_ok=True)
+    
     if not os.path.exists(file_path):
-        os.makedirs("trained_models/mixvpr", exist_ok=True)
-        gdown.download(url=url, output=file_path, fuzzy=True)
-    state_dict = torch.load(file_path)
+        gdown.download(id=file_id, output=file_path, quiet=False)
+    
+    # Carica i pesi sulla CPU per evitare errori CUDA/MPS
+    state_dict = torch.load(file_path, map_location='cpu')
+    
+    # Se i pesi sono stati salvati con un prefisso "module.", rimuovilo
+    if list(state_dict.keys())[0].startswith("module."):
+        state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
+        
     model.load_state_dict(state_dict)
-    model = model.eval()
-
     return model
