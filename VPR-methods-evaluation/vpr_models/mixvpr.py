@@ -96,24 +96,25 @@ class MixVPR(nn.Module):
 class ResNet(nn.Module):
     def __init__(self):
         super().__init__()
-        # Download pesi pre-addestrati di ResNet50
+        # Scarichiamo la ResNet50 standard
         weights = torchvision.models.ResNet50_Weights.DEFAULT
-        base = torchvision.models.resnet50(weights=weights)
+        resnet = torchvision.models.resnet50(weights=weights)
         
-        # MixVPR usa solo i primi layer (fino al layer3) per ottenere
-        # un output di dimensione [Batch, 1024, 20, 20] da un input 320x320
-        self.encoder = nn.Sequential(
-            base.conv1, 
-            base.bn1, 
-            base.relu, 
-            base.maxpool,
-            base.layer1, 
-            base.layer2, 
-            base.layer3
-        )
+        # Il file dei pesi salvato si aspetta che l'attributo si chiami 'model'.
+        # Inoltre, MixVPR usa solo i feature map fino al layer3.
+        self.model = resnet
 
     def forward(self, x):
-        return self.encoder(x)
+        # Eseguiamo manualmente i passaggi solo fino al layer 3
+        # (Escludendo layer4 e fc che non servono e non sono nei pesi caricati)
+        x = self.model.conv1(x)
+        x = self.model.bn1(x)
+        x = self.model.relu(x)
+        x = self.model.maxpool(x)
+        x = self.model.layer1(x)
+        x = self.model.layer2(x)
+        x = self.model.layer3(x)
+        return x
 
 
 class MixVPRModel(torch.nn.Module):
