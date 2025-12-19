@@ -96,17 +96,17 @@ class MixVPR(nn.Module):
 class ResNet(nn.Module):
     def __init__(self):
         super().__init__()
-        # Scarichiamo la ResNet50 standard
+        #ResNet50 standard con i pesi di ImageNet
         weights = torchvision.models.ResNet50_Weights.DEFAULT
         resnet = torchvision.models.resnet50(weights=weights)
         
-        # Il file dei pesi salvato si aspetta che l'attributo si chiami 'model'.
-        # Inoltre, MixVPR usa solo i feature map fino al layer3.
+        del resnet.layer4
+        del resnet.avgpool
+        del resnet.fc
+        
         self.model = resnet
 
     def forward(self, x):
-        # Eseguiamo manualmente i passaggi solo fino al layer 3
-        # (Escludendo layer4 e fc che non servono e non sono nei pesi caricati)
         x = self.model.conv1(x)
         x = self.model.bn1(x)
         x = self.model.relu(x)
