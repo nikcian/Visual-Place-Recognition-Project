@@ -39,7 +39,7 @@ def parse_arguments():
 def main(args):
     device = args.device
     
-    # MODIFICA QUI: Aggiunta logica per forzare MPS su Mac se l'utente non specifica nulla o se vuole mps
+    # Aggiunta logica per forzare MPS su Mac se l'utente non specifica nulla o se vuole mps
     if device == "mps" and not torch.backends.mps.is_available():
         print("Warning: MPS not available, falling back to CPU")
         device = "cpu"
