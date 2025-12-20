@@ -80,6 +80,17 @@ def main(args):
 
     logger.debug("Calculating recalls")
     distances, predictions = faiss_index.search(queries_descriptors, max(args.recall_values))
+    # ---------------------------------------------------------
+    # [CUSTOM PATCH] SALVATAGGIO FORZATO DI PREDS.NPY
+    # ---------------------------------------------------------
+    try:
+        preds_dir = log_dir / 'preds'
+        preds_dir.mkdir(exist_ok=True, parents=True)
+        np.save(preds_dir / 'preds.npy', predictions)
+        logger.info(f"✅ [CUSTOM] File preds.npy salvato con successo in: {preds_dir}")
+    except Exception as e:
+        logger.error(f"❌ [CUSTOM] Errore nel salvataggio di preds.npy: {e}")
+    # ---------------------------------------------------------
 
     # For each query, check if the predictions are correct
     if args.use_labels:
