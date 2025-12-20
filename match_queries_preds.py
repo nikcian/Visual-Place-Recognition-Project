@@ -40,7 +40,7 @@ def main(args):
     print(f"Found {len(pred_files)} query prediction files.")
     
     # Image size for resizing (optional, speeds up matching)
-    img_size = 1024 
+    img_size = 512 
 
     for pred_file in tqdm(pred_files):
         pred_file = Path(pred_file)
