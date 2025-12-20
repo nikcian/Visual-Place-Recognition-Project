@@ -1,98 +1,113 @@
-import argparse
-import numpy as np
 import os
-import torch
-from pathlib import Path
-from tqdm import tqdm
-from glob import glob
-import time
 import sys
+import argparse
+import torch
+from glob import glob
+from tqdm import tqdm
+from pathlib import Path
+from copy import deepcopy
 
-# Aggiungi il path per importare il modulo interno
-sys.path.append("image-matching-models")
-from matching import get_matcher, available_models
+# --- FIX 1: Importazione Semplificata per Colab ---
+# Invece di percorsi complessi, puntiamo dritti alla cartella
+if os.path.exists("image-matching-models"):
+    sys.path.append("image-matching-models")
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Match queries with predictions using LightGlue/SuperGlue")
-    parser.add_argument("--preds-dir", type=str, required=True, help="Path to the directory containing predictions .txt files")
-    parser.add_argument("--matcher", type=str, default="superpoint-lg", choices=available_models, help="Matcher configuration")
-    parser.add_argument("--device", type=str, default="cuda", help="Device to use (cuda/cpu)")
-    parser.add_argument("--num-preds", type=int, default=10, help="Number of predictions to match per query")
+# Gestione errore se manca il modulo
+try:
+    from matching import get_matcher, available_models
+    from matching.utils import get_default_device
+except ImportError:
+    print("❌ ERRORE: Non trovo la cartella 'image-matching-models'.")
+    sys.exit(1)
+
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--preds-dir", type=str, help="directory with predictions of a VPR model")
+    parser.add_argument("--out-dir", type=str, default=None, help="output directory of image matching results")
+    parser.add_argument("--matcher", type=str, default="sift-lg", choices=available_models, help="choose your matcher")
+    parser.add_argument("--device", type=str, default=get_default_device(), choices=["cpu", "cuda"])
+    parser.add_argument("--im-size", type=int, default=512, help="resize img to im_size x im_size")
+    parser.add_argument("--num-preds", type=int, default=100, help="number of predictions to match")
+    parser.add_argument("--start-query", type=int, default=-1, help="query to start from")
+    parser.add_argument("--num-queries", type=int, default=-1, help="number of queries")
     return parser.parse_args()
 
 def main(args):
     device = args.device
-    preds_dir = Path(args.preds_dir)
     
-    # Setup output directory
-    output_dir = preds_dir.parent / "inliers"
-    output_dir.mkdir(exist_ok=True, parents=True)
-    
-    print(f"Loading matcher: {args.matcher}...")
-    matcher = get_matcher(args.matcher, device=device)
-    
-    # Get list of prediction files
-    pred_files = sorted(glob(str(preds_dir / "*.txt")))
-    if len(pred_files) == 0:
-        print(f"No .txt files found in {preds_dir}")
-        return
+    # Fallback CPU se GPU non c'è (evita crash Colab)
+    if device == "cuda" and not torch.cuda.is_available():
+        print("⚠️ GPU non trovata, uso CPU.")
+        device = "cpu"
 
-    print(f"Found {len(pred_files)} query prediction files.")
+    matcher_name = args.matcher
+    img_size = args.im_size
+    num_preds = args.num_preds
     
-    # Image size for resizing (optional, speeds up matching)
-    img_size = 512 
+    print(f"⚙️ Caricamento {matcher_name} su {device}...")
+    matcher = get_matcher(matcher_name, device=device)
+    
+    preds_folder = args.preds_dir
+    start_query = args.start_query
+    num_queries = args.num_queries
 
-    for pred_file in tqdm(pred_files):
-        pred_file = Path(pred_file)
+    output_folder = Path(preds_folder + f"_{matcher_name}") if args.out_dir is None else Path(args.out_dir)
+    output_folder.mkdir(exist_ok=True, parents=True) # Parents=True evita errori se mancano cartelle intermedie
+    
+    txt_files = glob(os.path.join(preds_folder, "*.txt"))
+    txt_files.sort(key=lambda x: int(Path(x).stem))
+
+    start_query = start_query if start_query >= 0 else 0
+    num_queries = num_queries if num_queries >= 0 else len(txt_files)
+
+    print(f"🚀 Avvio Matching: processerò {num_queries} query (Start: {start_query})")
+
+    # Ciclo principale
+    for txt_file in tqdm(txt_files[start_query : start_query + num_queries]):
+        q_num = Path(txt_file).stem
+        out_file = output_folder.joinpath(f"{q_num}.torch")
         
-        # Read the file content
-        with open(pred_file, "r") as f:
-            lines = f.read().splitlines()
-        
-        if len(lines) < 4:
+        # --- RESUME: Se il file esiste, salta (Già presente nell'originale) ---
+        if out_file.exists():
             continue
-            
-        # FIX PERCORSI: Rimuoviamo ../ se presente per compatibilita'
-        q_path = lines[1].strip()
-        if q_path.startswith("../"):
-            q_path = q_path.replace("../", "")
-            
-        cand_paths = lines[3:3+args.num_preds]
-        # Pulizia percorsi candidati
-        cand_paths = [p.strip().replace("../", "") if p.strip().startswith("../") else p.strip() for p in cand_paths]
         
         results = []
         
+        # --- FIX 2: Lettura file ROBUSTA (Sostituisce read_file_preds di util.py) ---
+        # Questo blocco legge i file e pulisce i percorsi "../" che rompono Colab
+        with open(txt_file, "r") as f:
+            lines = f.read().splitlines()
+        
+        if len(lines) < 4: continue
+            
+        q_path = lines[1].strip().replace("../", "")
+        # Leggiamo tutte le predizioni disponibili nel file
+        all_pred_paths = lines[3:] 
+        # Puliamo i percorsi delle predizioni
+        pred_paths = [p.strip().replace("../", "") for p in all_pred_paths if p.strip()]
+        # ---------------------------------------------------------------------------
+
         try:
-            # Load query image once
+            # Carica immagine query
             img0 = matcher.load_image(q_path, resize=img_size)
             
-            for cand_path in cand_paths:
-                # Load candidate image
-                img1 = matcher.load_image(cand_path, resize=img_size)
+            # Itera sulle predizioni (fino a num_preds)
+            for pred_path in pred_paths[:num_preds]:
+                img1 = matcher.load_image(pred_path, resize=img_size)
                 
-                # Perform matching
-                pred = matcher(img0, img1)
+                # Esegue il matching
+                result = matcher(deepcopy(img0), img1)
                 
-                # Count inliers
-                n_inliers = pred['num_inliers']
-                
-                results.append({
-                    'query_path': q_path,
-                    'db_path': cand_path,
-                    'num_inliers': n_inliers
-                })
+                # Rimuove dati pesanti inutili (come nell'originale)
+                result["all_desc0"] = result["all_desc1"] = None
+                results.append(result)
                 
         except Exception as e:
-            # Save empty results to avoid crashing if an image is missing
-            results = [{'num_inliers': 0} for _ in range(len(cand_paths))]
+            # Se c'è un errore (es. immagine mancante), salva un risultato vuoto per non bloccare tutto
+            results = [] 
 
-        # Save results for this query
-        out_file = output_dir / pred_file.with_suffix(".torch").name
         torch.save(results, out_file)
 
-    print(f"\nMatching completed. Results saved to {output_dir}")
-
 if __name__ == "__main__":
-    args = parse_args()
+    args = parse_arguments()
     main(args)
