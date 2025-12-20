@@ -1,96 +1,75 @@
-import argparse
-import numpy as np
+
 import os
-import torch
-from pathlib import Path
-from tqdm import tqdm
-from glob import glob
 import sys
+import argparse
+import torch
+from glob import glob
+from tqdm import tqdm
+from pathlib import Path
+from copy import deepcopy
 
-# --- FIX 1: Diciamo a Python dove trovare la 'repo altra' ---
-# Se la cartella esiste, la aggiungiamo al sistema
-if os.path.exists("image-matching-models"):
-    sys.path.append("image-matching-models")
+from util import read_file_preds
 
-# Gestione Importazioni
-try:
-    from matching import get_matcher, available_models
-except ImportError:
-    print("❌ ERRORE CRITICO: Non trovo il modulo 'matching'.")
-    print("   Assicurati che la cartella 'image-matching-models' sia stata scaricata correttamente su Colab.")
-    sys.exit(1)
+sys.path.append(str(Path(__file__).parent.joinpath("image-matching-models")))
 
-def parse_args():
+from matching import get_matcher, available_models
+from matching.utils import get_default_device
+
+def parse_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--preds-dir", type=str, required=True)
-    parser.add_argument("--out-dir", type=str, default=None)
-    parser.add_argument("--matcher", type=str, default="superpoint-lg")
-    parser.add_argument("--device", type=str, default="cuda")
-    parser.add_argument("--im-size", type=int, default=512) # FIX 2: 512px come da progetto
-    parser.add_argument("--num-preds", type=int, default=20)
+    
+    parser.add_argument("--preds-dir", type=str, help="directory with predictions of a VPR model")
+    parser.add_argument("--out-dir", type=str, default=None, help="output directory of image matching results")
+    # Choose matcher
+    parser.add_argument(
+        "--matcher",
+        type=str,
+        default="sift-lg",
+        choices=available_models,
+        help="choose your matcher",
+    )
+    parser.add_argument("--device", type=str, default=get_default_device(), choices=["cpu", "cuda"])
+    parser.add_argument("--im-size", type=int, default=512, help="resize img to im_size x im_size")
+    parser.add_argument("--num-preds", type=int, default=100, help="number of predictions to match")
+    parser.add_argument("--start-query", type=int, default=-1, help="query to start from")
+    parser.add_argument("--num-queries", type=int, default=-1, help="number of queries")
+
     return parser.parse_args()
 
 def main(args):
     device = args.device
-    if device == "cuda" and not torch.cuda.is_available():
-        print("⚠️ GPU non trovata, uso CPU.")
-        device = "cpu"
+    matcher_name = args.matcher
+    img_size = args.im_size
+    num_preds = args.num_preds
+    matcher = get_matcher(matcher_name, device=device)
+    preds_folder = args.preds_dir
+    start_query = args.start_query
+    num_queries = args.num_queries
 
-    print(f"⚙️ Config: {args.matcher} | {args.im_size}px | {device}")
+    output_folder = Path(preds_folder + f"_{matcher_name}") if args.out_dir is None else Path(args.out_dir)
+    output_folder.mkdir(exist_ok=True)
     
-    preds_dir = Path(args.preds_dir)
-    matcher = get_matcher(args.matcher, device=device)
-    
-    # Setup Output
-    if args.out_dir:
-        output_dir = Path(args.out_dir)
-    else:
-        output_dir = preds_dir.parent / "inliers"
-    output_dir.mkdir(exist_ok=True, parents=True)
+    txt_files = glob(os.path.join(preds_folder, "*.txt"))
+    txt_files.sort(key=lambda x: int(Path(x).stem))
 
-    txt_files = sorted(glob(str(preds_dir / "*.txt")))
-    print(f"📂 Trovati {len(txt_files)} file.")
-    
-    processed = 0
-    skipped = 0
+    start_query = start_query if start_query >= 0 else 0
+    num_queries = num_queries if num_queries >= 0 else len(txt_files)
 
-    for txt_file in tqdm(txt_files):
-        txt_file = Path(txt_file)
-        out_file = output_dir / txt_file.with_suffix(".torch").name
-        
-        # --- FIX 3: RESUME (Salta se il file esiste già) ---
+    for txt_file in tqdm(txt_files[start_query : start_query + num_queries]):
+        q_num = Path(txt_file).stem
+        out_file = output_folder.joinpath(f"{q_num}.torch")
         if out_file.exists():
-            skipped += 1
             continue
-            
-        with open(txt_file, "r") as f:
-            lines = f.read().splitlines()
-        
-        if len(lines) < 4: continue
-        
-        # Pulizia percorsi per Colab
-        q_path = lines[1].strip().replace("../", "")
-        pred_paths = [l.strip().replace("../", "") for l in lines[3:3+args.num_preds] if l.strip()]
-        
         results = []
-        try:
-            img0 = matcher.load_image(q_path, resize=args.im_size)
-            for p in pred_paths:
-                img1 = matcher.load_image(p, resize=args.im_size)
-                res = matcher(img0, img1)
-                results.append({
-                    'query_path': q_path,
-                    'db_path': p,
-                    'num_inliers': res['num_inliers']
-                })
-        except:
-            results = [{'num_inliers': 0} for _ in range(len(pred_paths))]
-            
+        q_path, pred_paths = read_file_preds(txt_file)
+        img0 = matcher.load_image(q_path, resize=img_size)
+        for pred_path in pred_paths[:num_preds]:
+            img1 = matcher.load_image(pred_path, resize=img_size)
+            result = matcher(deepcopy(img0), img1)
+            result["all_desc0"] = result["all_desc1"] = None
+            results.append(result)
         torch.save(results, out_file)
-        processed += 1
-
-    print(f"✅ Finito. Processati: {processed}, Saltati: {skipped}")
 
 if __name__ == "__main__":
-    args = parse_args()
+    args = parse_arguments()
     main(args)
