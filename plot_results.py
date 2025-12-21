@@ -36,7 +36,7 @@ def main(args):
         torch_file = inliers_dir / Path(txt_file).name.replace('txt', 'torch')
         if not torch_file.exists(): continue
         
-        res = torch.load(torch_file)
+        res = torch.load(torch_file, weights_only=False)
         
         # Il progetto dice: "using only the retrieval part... and the number of inliers with the first retrieved image"
         # Quindi guardiamo solo il PRIMO risultato (Top-1)
