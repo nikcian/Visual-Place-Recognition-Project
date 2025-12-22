@@ -1,7 +1,7 @@
 # Report Esperimenti Visual Place Recognition (VPR) - Dataset svox (sun e night)
 
 ## 1. Risultati Retrieval e Re-ranking
-In questa sezione vengono analizzate le performance su tokyo_xs, un dataset caratterizzato da un'elevata densità urbana e fenomeni di perceptual aliasing (edifici visivamente simili in luoghi diversi). Il re-ranking geometrico viene applicato alle prime 20 predizioni fornite da NetVLAD.
+In questa sezione vengono analizzate le performance su svox, un dataset suburbano/rurale con variazioni temporali e di illuminazione. Il re-ranking geometrico viene applicato alle prime 20 predizioni fornite da NetVLAD.
 
 # Configurazione:
 - Risoluzione Immagini: 512 x 512 pixel
@@ -12,29 +12,68 @@ In questa sezione vengono analizzate le performance su tokyo_xs, un dataset cara
 
 | Metodo | R@1 | R@5 | R@10 | R@20 | Tempo per Query (ms) | Tempo Impiegato | s/it|
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **NetVLAD (Base)** | 73.0 | 85.1 | 88.7 | 91.7 | <100 | | |
-| **NetVLAD + LightGlue** | **68.3** | 72.1 | 73.7 | 78.7 | 3540 | 18.35 | 3.54 |
+| **NetVLAD (Base)** | 27.1 | 40.7 | 46.2 | 51.4 | 110 | 10.11 | 9.09 |
+| **NetVLAD + LightGlue** | **47.8** | 49.6 | 50.6 | 51.4 | 3540 | 41.19 | 3.48 |
 | **NetVLAD + SuperGlue** | **x** | x | x | x | x | x | x |
-| **NetVLAD + LoFTR** | **68.3** | x | x | x | x | x | x |
+| **NetVLAD + LoFTR** | **48.9** | 50.1 | 50.8 | 51.4 | 3650 | 43.18 | 3.65 |
 
-### Tabella Comparativa delle Performance svox night
 
-| Metodo | R@1 | R@5 | R@10 | R@20 | Tempo per Query (ms) | Tempo Impiegato | s/it|
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **NetVLAD (Base)** | 49.8 | 62.5 | 70.5 | 78.7 | <100 | | |
-| **NetVLAD + LightGlue** | **68.3** | 72.1 | 73.7 | 78.7 | 3540 | 18.35 | 3.54 |
-| **NetVLAD + SuperGlue** | **x** | x | x | x | x | x | x |
-| **NetVLAD + LoFTR** | **68.3** | x | x | x | x | x | x |
-
----
 
 ## 2. Analisi della Correlazione: Inliers vs Correttezza (R@1)
 
 ## Distribuzione degli Inliers (SuperPoint + LightGlue)
 ![Istogramma Inliers](Histograms/Netvlad_Superpoint+LG_Svox_Sun.png)
+**Osservazioni**:
+- **Capacità di Discriminazione Netta**: Le query corrette (verdi) mostrano una media di 102.6 inliers, mentre le query errate (rosse) sono schiacciate verso lo zero con una media di soli 9.5 inliers. Questa separazione bimodale è estremamente marcata, indicando che in condizioni "Sun", il numero di inliers funge da segnale quasi perfetto per distinguere i match validi dai falsi positivi.
+- **Efficienza del Re-ranking**: LightGlue dimostra una capacità di riordinamento quasi ottimale, portando la Recall@1 al 47.8%. Dato che la Recall@20 della baseline era del 51.4%, il matcher ha recuperato con successo circa il 93% delle query potenzialmente corrette fornite da NetVLAD.
+- **Robustezza Geometrica**: Nonostante le variazioni ambientali del dataset SVOX, LightGlue stabilisce corrispondenze molto forti, superando i 200 inliers in diversi casi positivi. Questo conferma l'efficacia della combinazione SuperPoint+LightGlue come step di verifica geometrica affidabile per il refinement della posizione.
+- **Analisi del Limite (Upper Bound)**: Il fatto che la Recall@100 (51.4%) coincida con la Recall@20 della baseline indica che il limite prestazionale attuale non è dettato dal re-ranking, ma dalla capacità di retrieval globale iniziale. Se NetVLAD non include l'immagine corretta nei primi 20 candidati, il matcher locale non ha modo di recuperarla.
+- **Efficienza Operativa**: Il tempo di elaborazione si è attestato su 3.48s/it (circa 3480 ms per query), completando le 712 query in 41 minuti e 19 secondi. Questo dato conferma il costo computazionale costante richiesto per trasformare una baseline modesta in un sistema di localizzazione ad alta precisione.
 
-**Osservazioni:**
-- **Capacità di Discriminazione Netta**: Le query corrette (verdi) mostrano una media di 102.6 inliers, mentre le query errate (rosse) sono schiacciate verso lo zero con una media di soli 9.5 inliers. Questa separazione è tra le più pulite osservate finora, indicando che in condizioni di luce diurna ("Sun"), il numero di inliers è un segnale quasi perfetto per la verifica della posizione.
-- **Robustezza Geometrica**: Nonostante il dataset SVOX presenti sfide ambientali diverse dai contesti urbani densi di Tokyo o SF, LightGlue riesce a stabilire un numero elevato di corrispondenze (fino a oltre 200 in alcuni casi), confermando la sua efficacia come step di refinement geometrico.
-- **Analisi della Recall**: La R@1 del 47.8% (rispetto a una R@20 del 51.4%) indica che LightGlue riesce a recuperare quasi la totalità delle query potenzialmente corrette identificate da NetVLAD. Il limite principale rimane quindi la capacità di retrieval globale iniziale nel dataset SVOX.
-- **Efficienza Operativa**: Il tempo di elaborazione di 3.54s/it (circa 3540 ms per query) si conferma in linea con i test precedenti su LightGlue, rappresentando il "prezzo" computazionale necessario per ottenere tale affidabilità geometrica.
+
+## Distribuzione degli Inliers (LoFTR)
+![Istogramma Inliers](Histograms/Netvlad_LoFTR_Svox_Sun.png)
+**Osservazioni**
+- **Densità di Match Superiore**: LoFTR mostra una capacità di matching densa notevolmente superiore rispetto ai metodi sparse. Le query corrette (verdi) raggiungono una media di 176.0 inliers, con picchi che superano quota 400. Questo incremento del 71% rispetto a LightGlue (media 102.6) evidenzia la capacità di LoFTR di stabilire corrispondenze anche in aree a bassa tessitura.
+
+- **Separazione delle Distribuzioni**: Nonostante l'elevato numero di inliers per le query corrette, le query errate (rosse) rimangono confinate a una media molto bassa di 11.4 inliers. Il rapporto tra la media delle corrette e delle errate è di circa 15.4x, garantendo una soglia di confidenza estremamente sicura per l'accettazione dei match.
+- **Ottimizzazione della Recall@1**: Con una Recall@1 del 48.9%, LoFTR si posiziona come il miglior metodo di re-ranking per questo dataset. Il sistema riesce a recuperare quasi il 95% delle query potenzialmente corrette (limite R@20 di 51.4%), confermando che l'approccio detector-free è particolarmente efficace nelle scene suburbane di SVOX.
+- **Analisi dell'Efficienza**: Il costo computazionale di LoFTR si attesta a 3.65s/it. Sebbene leggermente superiore a LightGlue (3.48s/it), il tempo aggiuntivo di circa 170ms per query è ampiamente giustificato dalla maggiore robustezza geometrica e dal leggero guadagno in precisione finale.
+- Il fatto che LoFTR abbia una media di 176 inliers contro i 102 di LightGlue significa che, in caso di variazioni stagionali (es. alberi senza foglie vs alberi con foglie), LoFTR troverà molti più punti di appoggio rispetto a SuperPoint.
+
+
+-------------------------
+
+### Tabella Comparativa delle Performance svox night
+
+| Metodo | R@1 | R@5 | R@10 | R@20 | Tempo per Query (ms) | Tempo Impiegato | s/it|
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **NetVLAD (Base)** | 3.1 | 9.0 | 12.1 | 17.8 | 110 | 10.09 | 3.1 |
+| **NetVLAD + LightGlue** | **13.7** | 15.5 | 16.4 | 17.8 | 3480 | 40.43 | 3.48 |
+| **NetVLAD + SuperGlue** | **x** | x | x | x | x | x | x |
+| **NetVLAD + LoFTR** | **13.7** | 15.2 | 15.8 | 17.8 | 3660 | 42.50 | 3.66 |
+
+## Distribuzione degli Inliers (SuperPoint + LightGlue)
+![Istogramma Inliers](Histograms/Netvlad_Superpoint+LG_Svox_night.png)
+**Osservazioni**:
+- **Capacità di Discriminazione**: Nonostante le condizioni di scarsa illuminazione, LightGlue mantiene una separazione netta tra le classi. Le query corrette mostrano una media di 58.4 inliers, mentre le query errate rimangono schiacciate verso il basso con una media di soli 6.9 inliers. Questo conferma che il numero di corrispondenze geometriche rimane un indicatore di confidenza affidabile anche in domini difficili.
+
+- **Impatto del Re-ranking**: Il miglioramento della Recall@1 dal 3.1% al 13.7% è notevole, quadruplicando l'efficacia del sistema rispetto alla sola baseline globale. LightGlue è riuscito a portare in prima posizione circa il 77% delle query corrette che erano "nascoste" tra i primi 20 candidati estratti da NetVLAD.
+- **Analisi della Sensibilità Geometrica**: Rispetto al dataset "Sun" (media inliers 102.6), il valore medio per le query corrette notturne scende a 58.4. Questa riduzione del 43% riflette la maggiore difficoltà nel rilevare e descrivere feature locali stabili in assenza di illuminazione ottimale, sebbene il numero di match rimanga sufficiente per un re-ranking efficace.
+- **Limiti del Retrieval Globale**: Anche in questo caso, la Recall@20 finale (17.8%) coincide esattamente con quella della baseline, evidenziando che il limite invalicabile del sistema è dettato dalla capacità di NetVLAD di includere l'immagine corretta nella lista iniziale dei candidati.
+- **Efficienza Operativa**: Il matching ha richiesto 40 minuti e 43 secondi per 702 query, mantenendo una velocità costante di 3.48 s/it. Questo dato conferma la stabilità computazionale di LightGlue, indipendente dal contenuto luminoso dell'immagine.
+
+
+## Distribuzione degli Inliers (LoFTR)
+![Istogramma Inliers](Histograms/Netvlad_LoFTR_Svox_Nigth.png)
+**Osservazioni**:
+
+- **Resilienza al Rumore Notturno**: LoFTR conferma la sua superiorità nella densità di matching anche in condizioni critiche, mantenendo una media di 82.1 inliers per le query corrette. Questo valore è superiore del 40% rispetto a quello ottenuto da LightGlue (58.4) nello stesso dataset, dimostrando come l'approccio detector-free riesca a estrarre più informazioni utili dal segnale degradato delle immagini notturne.
+
+- **Stabilità della Recall@1**: Con una Recall@1 del 13.7%, LoFTR eguaglia esattamente il risultato di LightGlue. Questo indica che entrambi i matcher sono riusciti a portare in prima posizione circa il 77% delle query corrette presenti nel batch di candidati (tetto massimo R@20 di 17.8%), ma LoFTR lo fa con una confidenza geometrica (numero di inliers) molto più elevata.
+
+- **Capacità Discriminativa**: Nonostante la complessità del dominio, la separazione tra le distribuzioni rimane netta: le query errate presentano una media di soli 8.8 inliers. Il netto distacco rispetto alla media delle corrette garantisce che il sistema possa rigettare i falsi positivi con estrema precisione anche nel buio.
+
+- **Analisi della Sensibilità Luminosa**: Il calcolo del drop di inliers tra Sun (176.0) e Night (82.1) evidenzia una riduzione del 53% nella capacità di matching di LoFTR. Questo calo, sebbene significativo, è meno penalizzante rispetto ai metodi basati su detector, permettendo di mantenere una base di corrispondenze solida per la localizzazione.
+
+- **Efficienza Operativa**: Il tempo medio per query si attesta a 3.66s/it, per un totale di 42 minuti e 50 secondi. La stabilità del tempo di calcolo (solo +180ms rispetto a LightGlue) rende LoFTR un'alternativa preferibile per contesti dove la confidenza del match è prioritaria rispetto alla velocità pura.
