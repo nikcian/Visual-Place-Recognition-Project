@@ -21,7 +21,7 @@
 | :--- | :--- | :---: | :---: | :---: | :---: |
 | MixVPR (Baseline) | - | 62.9 | 79.8 | 84.1 | 88.0 |
 | MixVPR | **SuperPoint + LightGlue** | 82.0 | 86.4 | 87.1 | **88.0** |
-| MixVPR | **SuperPoint + SuperGlue** | 82.0 | 86.6 | 87.4 | **88.0** |
+| MixVPR | **SuperGlue** | 82.0 | 86.6 | 87.4 | **88.0** |
 | MixVPR | **LoFTR** | **82.5** | **86.8** | **87.6** | **88.0** |
 
 #### ☀️ SVOX Sun
