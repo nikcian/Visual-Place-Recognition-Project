@@ -26,8 +26,8 @@ Il sistema è stato valutato confrontando la baseline globale (**MixVPR**) con d
 | Metodo | Matcher Locale | R@1 | R@5 | R@10 | R@20 |
 | :--- | :--- | :---: | :---: | :---: | :---: |
 | MixVPR (Baseline) | - | 62.9 | 79.8 | 84.1 | 88.0 |
-| MixVPR | **SuperPoint + LightGlue** | **82.0** | **86.4** | **87.1** | **88.0** |
-| MixVPR | **SuperPoint + SuperGlue** | *In corso* | - | - | - |
+| MixVPR | **SuperPoint + LightGlue** | **82.0** | 86.4 | 87.1 | **88.0** |
+| MixVPR | **SuperPoint + SuperGlue** | **82.0** | **86.6** | **87.4** | **88.0** |
 
 #### ☀️ SVOX Sun
 | Metodo | Matcher Locale | R@1 | R@5 | R@10 | R@20 |
@@ -46,7 +46,7 @@ Il sistema è stato valutato confrontando la baseline globale (**MixVPR**) con d
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **sf_xs** | 1000 | **0.21s** | **4.63s** | **3.64s** | ~17x |
 | **tokyo_xs** | 315 | **0.39s** | **4.58s** | **8.04s** | ~20x |
-| **svox_night** | 823 | **0.19s** | **4.56s** | *In corso* | - |
+| **svox_night** | 823 | **0.19s** | **4.56s** | **17.18s** | ~90x |
 | **svox_sun** | 854 | **0.18s** | **4.53s** | **8.19s** (CPU) | ~45x |
 
 ---
