@@ -14,7 +14,7 @@ In questa sezione vengono analizzate le performance su svox, un dataset suburban
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **NetVLAD (Base)** | 27.1 | 40.7 | 46.2 | 51.4 | 110 | 10.11 | 9.09 |
 | **NetVLAD + LightGlue** | **47.8** | 49.6 | 50.6 | 51.4 | 3540 | 41.19 | 3.48 |
-| **NetVLAD + SuperGlue** | **x** | x | x | x | x | x | x |
+| **NetVLAD + SuperGlue** | **46.8** | 49.7 | 50.7 | 51.4 | 1510 | 17.52 | 1.51 |
 | **NetVLAD + LoFTR** | **48.9** | 50.1 | 50.8 | 51.4 | 3650 | 43.18 | 3.65 |
 
 
@@ -41,6 +41,13 @@ In questa sezione vengono analizzate le performance su svox, un dataset suburban
 - **Analisi dell'Efficienza**: Il costo computazionale di LoFTR si attesta a 3.65s/it. Sebbene leggermente superiore a LightGlue (3.48s/it), il tempo aggiuntivo di circa 170ms per query è ampiamente giustificato dalla maggiore robustezza geometrica e dal leggero guadagno in precisione finale.
 - Il fatto che LoFTR abbia una media di 176 inliers contro i 102 di LightGlue significa che, in caso di variazioni stagionali (es. alberi senza foglie vs alberi con foglie), LoFTR troverà molti più punti di appoggio rispetto a SuperPoint.
 
+## Distribuzione degli Inliers (SuperGlue)
+![Istogramma Inliers](Histograms/Netvlad_SuperGlue_Svox_Sun.png)
+**Osservazioni**
+- **Efficienza Operativa Superiore**: SuperGlue ha completato il matching in soli 17 minuti e 52 secondi con una velocità di 1.51 s/it. Risulta oltre due volte più veloce di LightGlue (3.48 s/it) e LoFTR (3.65 s/it) su questo hardware, pur mantenendo una Recall@1 competitiva del 46.8%.
+- **Capacità Discriminativa**: Nonostante un numero medio di inliers inferiore (42.6 per le corrette vs 7.0 per le errate), la separazione tra le due distribuzioni rimane evidente. Questo conferma che il meccanismo di Attentional Graph Neural Network di SuperGlue è estremamente efficace nel filtrare i match errati anche con meno corrispondenze assolute rispetto a LoFTR.
+- **Confronto tra Metodi Sparse**: Rispetto a LightGlue (media 102.6 inliers), SuperGlue mostra una densità di match ridotta del 58%. Tuttavia, la stabilità della Recall@1 (46.8% vs 47.8%) suggerisce che la qualità dei match trovati sia sufficiente per un ordinamento geometrico quasi ottimale dei candidati.
+- **Analisi del Reranking**: SuperGlue è riuscito a portare in prima posizione circa il 91% delle query corrette rintracciabili (tetto massimo R@20 del 51.4%). Il leggero distacco da LoFTR (48.9%) indica che in scenari diurni suburbani, l'approccio detector-free di LoFTR riesce a catturare dettagli minimi che sfuggono alla rilevazione di punti chiave di SuperPoint.
 
 -------------------------
 
@@ -48,9 +55,9 @@ In questa sezione vengono analizzate le performance su svox, un dataset suburban
 
 | Metodo | R@1 | R@5 | R@10 | R@20 | Tempo per Query (ms) | Tempo Impiegato | s/it|
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **NetVLAD (Base)** | 3.1 | 9.0 | 12.1 | 17.8 | 110 | 10.09 | 3.1 |
+| **NetVLAD (Base)** | **3.1** | 9.0 | 12.1 | 17.8 | 110 | 10.09 | 3.1 |
 | **NetVLAD + LightGlue** | **13.7** | 15.5 | 16.4 | 17.8 | 3480 | 40.43 | 3.48 |
-| **NetVLAD + SuperGlue** | **x** | x | x | x | x | x | x |
+| **NetVLAD + SuperGlue** | **13.2** | 15.2 | 16.5 | 17.8 | 1470 | 17.15 | 1.47 |
 | **NetVLAD + LoFTR** | **13.7** | 15.2 | 15.8 | 17.8 | 3660 | 42.50 | 3.66 |
 
 ## Distribuzione degli Inliers (SuperPoint + LightGlue)
@@ -77,3 +84,11 @@ In questa sezione vengono analizzate le performance su svox, un dataset suburban
 - **Analisi della Sensibilità Luminosa**: Il calcolo del drop di inliers tra Sun (176.0) e Night (82.1) evidenzia una riduzione del 53% nella capacità di matching di LoFTR. Questo calo, sebbene significativo, è meno penalizzante rispetto ai metodi basati su detector, permettendo di mantenere una base di corrispondenze solida per la localizzazione.
 
 - **Efficienza Operativa**: Il tempo medio per query si attesta a 3.66s/it, per un totale di 42 minuti e 50 secondi. La stabilità del tempo di calcolo (solo +180ms rispetto a LightGlue) rende LoFTR un'alternativa preferibile per contesti dove la confidenza del match è prioritaria rispetto alla velocità pura.
+
+## Distribuzione degli Inliers (SuperPoint + LightGlue)
+![Istogramma Inliers](Histograms/Netvlad_SuperGlue_Svox_Night.png)
+**Osservazioni**:
+- **Efficienza Temporale Record**: SuperGlue si conferma il matcher più veloce della pipeline, completando il dataset notturno in soli 17 minuti e 15 secondi con una velocità di 1.47 s/it. Rispetto a LoFTR (3.66 s/it) e LightGlue (3.48 s/it), SuperGlue riduce i tempi di elaborazione di oltre il 50%, rappresentando il miglior compromesso tra prestazioni e costo computazionale.
+- **Qualità del Reranking Notturno**: Nonostante una Recall@1 leggermente più bassa (13.2%) rispetto al 13.7% degli avversari, SuperGlue ottiene la miglior Recall@10 (16.5%), dimostrando un'ottima capacità di recuperare immagini corrette anche in condizioni di buio estremo dove i keypoint sono degradati.
+- **Sensibilità ai Cambiamenti di Luce**: Il numero medio di inliers per le query corrette crolla a 26.4 rispetto ai 42.6 del dataset Sun (una riduzione del 38%). Questo dato evidenzia la difficoltà intrinseca nel rilevare feature stabili in assenza di illuminazione ottimale, sebbene la separazione dalle query errate (media 5.7 inliers) rimanga statisticamente significativa.
+- **Capacità Discriminativa**: Sebbene la densità di match sia la più bassa tra tutti i metodi testati (media 26.4 contro gli 82.1 di LoFTR), la distribuzione mostra ancora una separazione chiara che permette di identificare le query "difficili" o errate, fornendo una base solida per future analisi di incertezza.
