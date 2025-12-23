@@ -61,7 +61,6 @@ def main(args):
         query_db_inliers_sorted, indices = torch.sort(query_db_inliers, descending=True)
         geo_dists_reranked = geo_dists_orig[indices]
         
-        # --- RACCOLTA DATI PER LA RELAZIONE (Sezione 5.2 / 6.1) ---
         # Salviamo inliers del top-1 dopo il reranking e la sua correttezza
         max_inliers = query_db_inliers_sorted[0].item()
         is_correct_top1 = (geo_dists_reranked[0] <= threshold).item()
@@ -82,7 +81,6 @@ def main(args):
             f.write(f"{q_path}\n")
             for p_path in reranked_paths:
                 f.write(f"{p_path}\n")
-        # ------------------------------------------------
 
         # Calcolo Recall
         for i, n in enumerate(recall_values):
@@ -90,7 +88,7 @@ def main(args):
                 recalls[i:] += 1
                 break
 
-    # --- SALVATAGGIO CSV STATISTICHE ---
+    # Salvataggio .csv statistiche
     csv_path = inliers_folder.parent.joinpath(f"stats_{inliers_folder.name}.csv")
     with open(csv_path, 'w', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=['query_id', 'max_inliers', 'is_correct'])

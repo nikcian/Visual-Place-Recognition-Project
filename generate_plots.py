@@ -19,7 +19,7 @@ def generate_plots(csv_path, dataset_name, matcher_name):
 
     print(f"\n--- Generating Plots for {dataset_name} ({matcher_name}) ---")
     
-    # 1. INLIERS HISTOGRAM (Exactly as in the screenshot)
+    # INLIERS HISTOGRAM (Exactly as in the screenshot)
     plt.figure(figsize=(10, 6))
     
     # Creating the histogram with matching labels and colors
@@ -38,7 +38,7 @@ def generate_plots(csv_path, dataset_name, matcher_name):
     plt.savefig(f"{output_dir}/{dataset_name}_{matcher_name}_distribution.png")
     plt.close()
 
-    # 2. ADAPTIVE ANALYSIS (Recall vs Cost Saving for Section 6.1)
+    # ADAPTIVE ANALYSIS (Recall vs Cost Saving for Section 6.1)
     max_val = int(df[inlier_col].max())
     thresholds = np.arange(0, max_val + 1, 2)
     recalls = []
