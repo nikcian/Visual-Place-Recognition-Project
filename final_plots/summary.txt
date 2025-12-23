@@ -1,0 +1,14 @@
+--- RISULTATI FINALI PER REPORT ---
+       Dataset        Matcher     AUPRC
+0        sf_xs  superpoint-lg  0.958964
+1        sf_xs          loftr  0.955359
+2        sf_xs      superglue  0.955096
+3     tokyo_xs  superpoint-lg  0.966857
+4     tokyo_xs          loftr  0.960619
+5     tokyo_xs      superglue  0.919419
+6     svox_sun  superpoint-lg  0.978083
+7     svox_sun          loftr  0.977251
+8     svox_sun      superglue  0.974188
+9   svox_night  superpoint-lg  0.993302
+10  svox_night          loftr  0.978218
+11  svox_night      superglue  0.986273

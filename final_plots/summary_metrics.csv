@@ -1,0 +1,13 @@
+Dataset,Matcher,AUPRC
+sf_xs,superpoint-lg,0.9589635448668101
+sf_xs,loftr,0.9553594030374285
+sf_xs,superglue,0.9550956242289621
+tokyo_xs,superpoint-lg,0.9668566540787592
+tokyo_xs,loftr,0.9606190363169925
+tokyo_xs,superglue,0.9194190366573043
+svox_sun,superpoint-lg,0.978082512828257
+svox_sun,loftr,0.977251258255307
+svox_sun,superglue,0.9741877726033377
+svox_night,superpoint-lg,0.993302379376587
+svox_night,loftr,0.9782175567005272
+svox_night,superglue,0.9862733145902672
