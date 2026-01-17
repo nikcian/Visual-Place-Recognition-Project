@@ -61,7 +61,7 @@
 ## 📍 Dataset: SVOX (test)
 
 ### 🌑 Condizione: Night (Cross-Domain Challenge)
-| Metodo | Architettura (Backbone | Dim) | R@1 | R@5 | R@10 | R@20 |
+| Metodo | Architettura (Backbone) | Dim | R@1 | R@5 | R@10 | R@20 |
 | :--- | :--- | :---: | :---: | :---: | :---: |
 | NetVLAD | VGG16 | 4096 | 8.0 | 17.4 | 23.1 | 29.6 |
 | CosPlace | ResNet50 | 512 | 33.4 | 51.9 | 60.8 | 68.3 |
@@ -69,7 +69,7 @@
 | **MegaLoc** | **DINOv2** | **8448** | **97.1** | **98.9** | **99.1** | **99.4** |
 
 ### ☀️ Condizione: Sun
-| Metodo | Architettura (Backbone | Dim) | R@1 | R@5 | R@10 | R@20 |
+| Metodo | Architettura (Backbone) | Dim | R@1 | R@5 | R@10 | R@20 |
 | :--- | :--- | :---: | :---: | :---: | :---: |
 | NetVLAD | VGG16 | 4096 | 35.4 | 52.7 | 58.8 | 65.8 |
 | CosPlace | ResNet50 | 512 | 61.7 | 78.0 | 84.1 | 88.8 |
