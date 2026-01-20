@@ -12,10 +12,10 @@ In questa sezione vengono analizzate le performance su svox, un dataset suburban
 
 | Metodo | R@1 | R@5 | R@10 | R@20 | Tempo per Query (ms) | Tempo Impiegato | s/it|
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **NetVLAD (Base)** | 27.1 | 40.7 | 46.2 | 51.4 | 110 | 10.11 | 9.09 |
-| **NetVLAD + LightGlue** | **47.8** | 49.6 | 50.6 | 51.4 | 3540 | 41.19 | 3.48 |
+| **NetVLAD (Base)** | 35.4 | 52.7 | 58.8 | 65.8.4 | 110 | 10.11 | 9.09 |
+| **NetVLAD + LightGlue** | **61.7** | 63.1 | 64.2 | 65.8 | 3540 | 41.19 | 3.48 |
 | **NetVLAD + SuperGlue** | **46.8** | 49.7 | 50.7 | 51.4 | 1510 | 17.52 | 1.51 |
-| **NetVLAD + LoFTR** | **48.9** | 50.1 | 50.8 | 51.4 | 3650 | 43.18 | 3.65 |
+| **NetVLAD + LoFTR** | **61.6** | 63.6 | 64.5 | 65.8 | 3650 | 43.18 | 3.65 |
 
 
 
@@ -55,10 +55,10 @@ In questa sezione vengono analizzate le performance su svox, un dataset suburban
 
 | Metodo | R@1 | R@5 | R@10 | R@20 | Tempo per Query (ms) | Tempo Impiegato | s/it|
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **NetVLAD (Base)** | **3.1** | 9.0 | 12.1 | 17.8 | 110 | 10.09 | 3.1 |
-| **NetVLAD + LightGlue** | **13.7** | 15.5 | 16.4 | 17.8 | 3480 | 40.43 | 3.48 |
+| **NetVLAD (Base)** | **8.0** | 17.4 | 23.1| 29.6 | 110 | 10.09 | 3.1 |
+| **NetVLAD + LightGlue** | **25.4** | 27.1 | 28.4 | 29.5 | 3480 | 40.43 | 3.48 |
 | **NetVLAD + SuperGlue** | **13.2** | 15.2 | 16.5 | 17.8 | 1470 | 17.15 | 1.47 |
-| **NetVLAD + LoFTR** | **13.7** | 15.2 | 15.8 | 17.8 | 3660 | 42.50 | 3.66 |
+| **NetVLAD + LoFTR** | **25.5** | 28.1 | 28.6 | 29.5 | 3660 | 42.50 | 3.66 |
 
 ## Distribuzione degli Inliers (SuperPoint + LightGlue)
 ![Istogramma Inliers](Histograms/Netvlad_Superpoint+LG_Svox_night.png)
