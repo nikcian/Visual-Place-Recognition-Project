@@ -1,228 +1,147 @@
-# 6.1.1 Analisi della Selezione della Soglia: SVOX Sun Train (LoFTR)
+# 6.1 Analisi e Selezione della Soglia Adattiva (LoFTR)
 
-In questa sezione determiniamo la soglia ottimale di inlier ($\tau$) per definire le "Query Difficili" (*Hard Queries*) utilizzando il dataset **SVOX Sun Train**. 
+In questa sezione determiniamo la soglia ottimale di inlier ($\tau$) per distinguere le query "Facili" da quelle "Difficili". L'obiettivo è massimizzare l'**F2-Score**, una metrica che privilegia la capacità di recuperare match corretti (Recall) mantenendo però un significativo risparmio computazionale.
 
-L'obiettivo è massimizzare l'equilibrio tra l'affidabilità della classificazione (**F1-Score**) e l'efficienza computazionale.
+### 6.1.1 Analisi su SVOX Sun Train (Scenario Diurno)
 
-![Trade-off Recall vs Saving](grafici_tau/tau_svox_sun_train_loftr.png.png)
-*Fig 6.1: Trade-off tra Recall@1 (Blu) e Risparmio Computazionale (Verde) in funzione della soglia di inlier $\tau$. La linea verticale indica la soglia ottimale.*
+Analizziamo il comportamento del sistema sul dataset di training diurno.
 
-### Analisi dei Dati e Tabella di Trade-off
+![Trade-off Recall vs Saving Sun](grafici_tau/tau_svox_sun_train_loftr.png)
+*Fig 6.1: Trade-off su SVOX Sun Train. Il picco dell'F2-Score identifica il miglior bilanciamento.*
 
-La seguente tabella illustra le prestazioni della strategia adattiva attraverso diversi livelli di soglia (con step di 5).
+**Tabella di Trade-off (SVOX Sun Train)**
 
-| Tau ($\tau$) | Recall@1 | Saving | F1-Score | Note |
+| Tau ($\tau$) | Recall@1 | Saving | F2-Score | Note |
 | :--- | :--- | :--- | :--- | :--- |
-| 0 | 17.42% | 93.99% | 0.6809 | |
-| 5 | 17.56% | 92.66% | 0.6854 | |
-| 10 | 31.04% | 52.74% | 0.7050 | |
-| **15** | **37.36%** | **32.91%** | **0.7273** | ⭐ **BEST** |
-| 20 | 38.90% | 29.48% | 0.7220 | |
-| 25 | 39.61% | 28.29% | 0.7160 | |
-| 30 | 40.03% | 27.23% | 0.7086 | |
-| 35 | 40.03% | 26.83% | 0.7088 | |
-| 40 | 40.87% | 25.78% | 0.6904 | |
-| 45 | 40.87% | 25.78% | 0.6904 | |
-| 50 | 41.15% | 25.38% | 0.6834 | |
-| 55 | 41.29% | 25.12% | 0.6786 | |
-| 60 | 41.43% | 24.85% | 0.6739 | |
-| 65 | 41.71% | 24.59% | 0.6691 | |
-| 70 | 41.85% | 24.06% | 0.6594 | |
-| 75 | 41.85% | 23.79% | 0.6545 | |
-| 80 | 42.13% | 23.40% | 0.6471 | |
-| 85 | 42.28% | 23.00% | 0.6396 | |
-| 90 | 42.42% | 22.60% | 0.6320 | |
-| 95 | 42.56% | 22.47% | 0.6294 | |
-| 100 | 43.12% | 21.55% | 0.6151 | |
+| 0 | 29.63% | 93.99% | 0.3434 | |
+| 5 | 29.78% | 92.66% | 0.3445 | |
+| 10 | 42.84% | 52.74% | 0.4451 | |
+| **12** | **46.49%** | **40.58%** | **0.4517** | ⭐ **BEST** |
+| 15 | 48.88% | 32.91% | 0.4456 | |
+| 20 | 50.28% | 29.48% | 0.4406 | |
+| 25 | 50.56% | 28.29% | 0.4368 | |
 
-> **Nota:** Il Best Tau matematico esatto (step=1) è: **14**.
+**Analisi:**
+Il punto di ottimo matematico si trova a **$\tau = 12$**.
+* A questo valore, il sistema ottiene una Recall del **46.49%** mantenendo un risparmio del **40.58%**.
+* Soglie inferiori (<10) hanno un risparmio altissimo (>90%) ma una Recall insufficiente (~29%), indicando che fidarsi troppo ciecamente di pochi inlier porta a perdere molti match.
+* Soglie superiori (>20) portano guadagni marginali di Recall a fronte di un crollo del risparmio sotto il 30%.
 
-> **Nota:** Un'analisi granulare (step=1) ha identificato il massimo matematico esatto dell'F1-Score a **$\tau = 14$**.
+---
 
-### Metodologia: Come è stata determinata la Soglia
+### 6.1.2 Analisi su SVOX Night Train (Scenario Notturno)
 
-La selezione del $\tau$ ottimale è stata guidata dall'**F1-Score**, che agisce come media armonica tra la capacità del sistema di fidarsi dei match corretti (Precisione nell'evitare re-ranking non necessari) e la sua capacità di rilevare errori (Recall nel segnalare query difficili).
+Lo scenario notturno rappresenta il "caso peggiore", dove il retrieval globale è meno affidabile e i match geometrici sono più scarsi.
 
-* **Soglie Basse ($\tau < 10$):**
-    A soglie estremamente basse (es. $\tau=5$), il sistema classifica quasi tutte le query come "Facili" (*Easy*). Sebbene ciò produca un risparmio computazionale massiccio (>92%), la Recall@1 rimane bloccata al livello del retrieval di base (~17%). Questo indica che il sistema si sta "fidando ciecamente" di match deboli.
+![Trade-off Recall vs Saving Night](grafici_tau/tau_svox_night_train_loftr.png)
+*Fig 6.2: Trade-off su SVOX Night Train. Si nota la necessità di abbassare la soglia per mantenere un minimo di efficienza.*
 
-* **Il Punto di Gomito ("Elbow Point", $\tau \approx 15$):**
-    Aumentando $\tau$ a 15, osserviamo un salto critico. La Recall@1 raddoppia (da ~17% a 37.36%) perché il sistema inizia a identificare correttamente le query "Difficili" e ad applicare il re-ranking dove necessario. L'F1-Score raggiunge qui il picco (**0.7273**), indicando che questo è il punto operativo più efficiente: risparmiamo circa il 33% del calcolo recuperando la maggior parte delle prestazioni recuperabili.
+**Tabella di Trade-off (SVOX Night Train)**
 
-* **Soglie Alte ($\tau > 40$):**
-    Oltre $\tau=40$, l'F1-Score inizia a scendere. Il guadagno in Recall rallenta significativamente (stabilizzandosi intorno al 41-43%), ma il Risparmio Computazionale continua a diminuire. Impostare una soglia così alta costringe il sistema a riordinare quasi tutto, annullando il beneficio della strategia adattiva (l'approccio Adattivo tende a diventare Re-ranking Standard).
-
-### Conclusione per SVOX Sun (LoFTR)
-
-Selezioniamo **$\tau = 14$** (approssimato a 15 nella tabella a step 5) come valore di taglio. Questa soglia permette a LoFTR di saltare il re-ranking per circa **un terzo delle query** (33% di risparmio) con una perdita minima di recall potenziale rispetto alla pipeline a costo pieno.
-
-----
-# 6.1.3 Analisi della Selezione della Soglia: SVOX Night Train (LoFTR)
-
-Estendiamo l'analisi al dominio notturno utilizzando il dataset **SVOX Night Train**.
-Il contesto notturno rappresenta una sfida significativa per il Global Retrieval (NetVLAD), e l'analisi della soglia $\tau$ evidenzia chiaramente la difficoltà del sistema nel fidarsi del primo candidato senza re-ranking.
-
-![Trade-off Recall vs Saving Night LoFTR](grafici_tau/tau_svox_night_train_loftr.png)
-*Fig 6.3: Trade-off tra Recall@1 (Blu) e Risparmio Computazionale (Verde) su SVOX Night Train. Si nota un crollo verticale del risparmio per ottenere guadagni di Recall.*
-
-### Analisi dei Dati e Tabella di Trade-off
-
-La seguente tabella riporta i dati completi per il range 0-100 (step=5).
-
-| Tau ($\tau$) | Recall@1 | Saving | F1-Score | Note |
+| Tau ($\tau$) | Recall@1 | Saving | F2-Score | Note |
 | :--- | :--- | :--- | :--- | :--- |
-| 0 | 1.99% | 94.12% | 0.2406 | |
-| 5 | 2.14% | 92.37% | 0.2420 | |
-| 10 | 10.26% | 21.05% | 0.2925 | |
-| **15** | **12.39%** | **3.89%** | **0.3360** | ⭐ **BEST** |
-| 20 | 12.68% | 2.68% | 0.3276 | |
-| 25 | 12.82% | 2.28% | 0.3009 | |
-| 30 | 12.96% | 2.15% | 0.2857 | |
-| 35 | 13.25% | 1.88% | 0.2545 | |
-| 40 | 13.25% | 1.74% | 0.2385 | |
-| 45 | 13.25% | 1.74% | 0.2385 | |
-| 50 | 13.39% | 1.47% | 0.2056 | |
-| 55 | 13.39% | 1.47% | 0.2056 | |
-| 60 | 13.39% | 1.34% | 0.1887 | |
-| 65 | 13.39% | 1.34% | 0.1887 | |
-| 70 | 13.39% | 1.21% | 0.1714 | |
-| 75 | 13.39% | 1.07% | 0.1538 | |
-| 80 | 13.39% | 1.07% | 0.1538 | |
-| 85 | 13.39% | 1.07% | 0.1538 | |
-| 90 | 13.39% | 1.07% | 0.1538 | |
-| 95 | 13.39% | 1.07% | 0.1538 | |
-| 100 | 13.39% | 1.07% | 0.1538 | |
+| 0 | 3.13% | 94.12% | 0.0389 | |
+| 5 | 3.28% | 92.37% | 0.0406 | |
+| **10** | **11.25%** | **21.05%** | **0.1241** | ⭐ **BEST** |
+| 15 | 13.39% | 3.89% | 0.0899 | |
+| 20 | 13.53% | 2.68% | 0.0748 | |
 
-> **Nota:** Il Best Tau matematico esatto (step=1) che massimizza l'F1-Score è: **14**.
+**Analisi e Scelta della Soglia Operativa:**
+* Il picco dell'F2-Score si trova a **$\tau = 10$**.
+* Si osserva una criticità fondamentale: passando da $\tau=10$ a $\tau=15$, il **risparmio crolla dal 21% al 3.89%**. Questo accade perché di notte quasi tutti i match corretti hanno un numero di inlier molto basso (tra 10 e 15).
+* Per evitare che il sistema degradi in un re-ranking totale (Saving ~0%), siamo costretti a fermarci a **10**.
 
-### Metodologia e Interpretazione (Scenario Notturno)
+**Decisione Finale:**
+Sebbene l'ottimo per il giorno sia 12, scegliamo **$\tau = 10$** come soglia globale unica. È il valore ottimale per la notte (il collo di bottiglia del sistema) ed è estremamente vicino all'ottimo diurno, garantendo robustezza in tutte le condizioni.
 
-L'analisi su SVOX Night rivela un comportamento molto diverso rispetto a SVOX Sun, pur convergendo verso lo stesso valore numerico di soglia.
+---
 
-* **Inefficacia a Basse Soglie ($\tau < 10$):**
-    Con $\tau=5$, il sistema avrebbe un alto risparmio (>92%), ma la Recall@1 è disastrosa (~2%). Questo indica che di notte il primo candidato restituito da NetVLAD è quasi sempre sbagliato o ha pochissimi inlier, rendendo impossibile fidarsi ciecamente del retrieval globale.
+# 6.2 Validazione della Soglia (SF-XS Val)
 
-* **Il Crollo del Risparmio ($\tau \approx 14-15$):**
-    Il punto di ottimo matematico è **$\tau=14$** (F1-Score max). Tuttavia, osserviamo un fenomeno critico: per raggiungere una Recall accettabile (~12%), il **risparmio computazionale crolla sotto il 4%**.
-    Questo significa che, per non perdere match corretti (che di notte hanno comunque pochi inlier a causa della scarsa illuminazione), siamo costretti ad abbassare l'asticella della "fiducia", finendo per rieseguire il re-ranking su quasi tutto il dataset (96% delle query).
+Validiamo la scelta di **$\tau = 10$** sul dataset di validazione San Francisco (SF-XS Val), mai visto durante l'analisi.
 
-* **Saturazione Immediata:**
-    Già a $\tau=20$, il risparmio è praticamente nullo (< 3%). La distribuzione degli inlier notturni è compressa verso lo zero, rendendo difficile separare nettamente le query facili da quelle difficili senza sacrificare massicciamente l'efficienza.
+![Validazione SF-XS](grafici_tau/validation_tau_sf_xs_val_loftr.png)
 
-### Conclusione per SVOX Night (LoFTR)
+**Risultati Validazione**
 
-Selezioniamo **$\tau = 14$** come valore operativo.
-Sebbene questo valore comporti un **risparmio computazionale minimo (~4%)**, è necessario per garantire che la Recall del sistema non crolli. In uno scenario notturno, la strategia adattiva tende a degradare verso il re-ranking completo, poiché l'incertezza del retrieval globale è troppo elevata per essere ignorata.
-
-# 6.2 Validazione della Soglia Adattiva (SF-XS Val)
-
-**Obiettivo:**
-Dopo aver determinato le soglie ottimali sui dataset di training (SVOX Sun/Night), è fondamentale validarne la robustezza su un dataset mai visto e proveniente da un dominio geografico diverso: **San Francisco eXtra Small (SF-XS Val)**.
-
-**Metodologia:**
-Applichiamo le soglie "congelate" derivate dall'analisi precedente:
-* **LoFTR:** $\tau = 15$ (Valore selezionato dall'analisi su SVOX Sun/Night)
-* **SuperPoint + LightGlue:** $\tau = 12$ (Valore selezionato dall'analisi su SVOX Sun)
-
-Valutiamo la **Recall@1** e il **Risparmio Computazionale** su SF-XS Val utilizzando questi valori fissi.
-
-### 6.2.1 Risultati Validazione: LoFTR
-
-Applicando la soglia $\tau=15$ al dataset di validazione SF-XS, otteniamo i seguenti risultati:
-
-![Validazione SF-XS LoFTR](grafici_tau/validation_tau_sf_xs_val_loftr.png)
-*Fig 6.4: Validazione della soglia $\tau=15$ su SF-XS (LoFTR). Il punto blu e verde indicano rispettivamente la Recall e il Risparmio ottenuti.*
-
-| Metodo | Tau Scelto ($\tau$) | Recall@1 | Risparmio (Saving) |
-| :--- | :--- | :--- | :--- |
-| **LoFTR** | **15** | **54.60%** | **61.74%** |
+| Metodo | Tau Scelto | Recall@1 | Risparmio (Saving) | Note |
+| :--- | :--- | :--- | :--- | :--- |
+| **LoFTR** | **10** | **52.70%** | **78.49%** | ⬅️ **CHOSEN** |
 
 **Discussione:**
-La validazione conferma l'eccellente robustezza del parametro $\tau=15$. Nonostante il cambio di dominio (da Pittsburgh a San Francisco), il sistema mantiene prestazioni coerenti.
-Il dato più rilevante è il **risparmio computazionale del 61.74%**: il sistema è in grado di classificare correttamente oltre il 60% delle query come "Facili" (Easy), evitando il costo del re-ranking. Sebbene si registri una perdita di Recall rispetto al massimo teorico (che si attesta intorno al 70% con re-ranking totale), il trade-off è ampiamente giustificato: il sistema dimezza i tempi di esecuzione mantenendo una precisione operativa solida.
+La validazione conferma l'efficacia della soglia. Su SF-XS, $\tau=10$ permette un **risparmio eccezionale del 78.49%**. Questo indica che in questo ambiente urbano il Global Retrieval (NetVLAD) è spesso corretto e LoFTR lo conferma facilmente superando i 10 inlier, permettendo al sistema di saltare il re-ranking quasi nell'80% dei casi.
 
+---
 
-# 6.3 Valutazione sui Test Set: SVOX Sun & Night (LoFTR)
+# 6.3 Valutazione sui Test Set (SVOX)
 
-Riportiamo i risultati finali dell'Adaptive Re-ranking sui dataset di test di SVOX, utilizzando la soglia congelata **$\tau = 15$**, determinata in fase di training e validata su SF-XS.
+Applichiamo ora la soglia congelata **$\tau = 10$** ai dataset di test di Pittsburgh.
 
-L'obiettivo è osservare come il sistema reagisce a condizioni di illuminazione opposte (giorno vs notte) mantenendo fisso il parametro decisionale.
-
-### 6.3.1 SVOX Sun Test (Scenario Diurno)
+### 6.3.1 SVOX Sun Test
 
 ![Test SVOX Sun](grafici_tau/test_tau_svox_sun_loftr.png)
-*Fig 6.5: Performance su SVOX Sun Test con $\tau=15$. Il sistema mantiene un ottimo bilanciamento.*
 
 | Metodo | Tau ($\tau$) | Recall@1 | Risparmio (Saving) |
 | :--- | :--- | :--- | :--- |
-| **LoFTR** | **15** | **44.03%** | **42.43%** |
+| **LoFTR** | **10** | **46.84%** | **63.48%** |
 
 **Analisi:**
-Nello scenario diurno (Sun), il sistema si comporta in modo equilibrato ed efficiente.
-Con un risparmio del **42.43%**, l'algoritmo evita di eseguire il re-ranking costoso su quasi la metà delle immagini, giudicandole correttamente come "Facili" dal Global Retrieval. La Recall@1 finale (**44.03%**) è in linea con le aspettative per questo dataset complesso, dimostrando che la soglia scelta non sta filtrando aggressivamente i match corretti.
+Il sistema si comporta in modo eccellente di giorno, garantendo un **risparmio del 63.48%** e una Recall del 46.84%. Rispetto al training set, l'efficienza è addirittura migliorata, confermando che la soglia 10 non è troppo restrittiva per le immagini diurne.
 
-### 6.3.2 SVOX Night Test (Scenario Notturno)
+### 6.3.2 SVOX Night Test
 
-![Test SVOX Sun](grafici_tau/test_tau_svox_night_loftr.png)
-*Fig 6.6: Performance su SVOX Night Test con $\tau=15$. Si nota come il risparmio crolli (linea verde tratteggiata) per proteggere la Recall.*
+![Test SVOX Night](grafici_tau/test_tau_svox_night_loftr.png)
 
 | Metodo | Tau ($\tau$) | Recall@1 | Risparmio (Saving) |
 | :--- | :--- | :--- | :--- |
-| **LoFTR** | **15** | **21.26%** | **10.86%** |
+| **LoFTR** | **10** | **20.78%** | **26.42%** |
 
 **Analisi:**
-Lo scenario notturno evidenzia l'intelligenza del sistema adattivo nel gestire l'incertezza.
-Il **risparmio scende drasticamente al 10.86%**: questo è un comportamento **atteso e desiderabile**. Di notte, a causa della scarsa illuminazione, anche i match corretti generano pochi inlier; di conseguenza, il sistema classifica quasi tutte le query come "Difficili" (Hard) e attiva il re-ranking nel 90% dei casi.
-Questo meccanismo di "sicurezza" permette di mantenere la Recall al **21.26%**. Se il sistema avesse forzato un risparmio più alto (come nel caso diurno), la Recall sarebbe crollata quasi a zero, perdendo la capacità di localizzazione.
+Nello scenario notturno, il sistema si adatta automaticamente alla difficoltà. Il risparmio scende al **26.42%**, poiché il sistema riconosce l'incertezza e attiva il re-ranking per il 74% delle query. Questo comportamento protettivo permette di mantenere la Recall al **20.78%**; se avessimo forzato un risparmio più alto, la recall sarebbe crollata.
 
+---
 
-# 6.4 Valutazione su SF-XS Test (LoFTR)
+# 6.4 Valutazione su Test Set Urbani (SF & Tokyo)
 
-Concludiamo l'analisi di LoFTR applicando la strategia adattiva al dataset di test **San Francisco (SF-XS Test)**.
-Questo test verifica se la soglia appresa su Pittsburgh ($\tau=15$) e validata su una porzione di San Francisco, mantenga la sua efficacia su nuove query urbane.
+Verifichiamo la capacità di generalizzazione geografica della soglia **$\tau = 10$**.
 
-![Test SF-XS LoFTR](grafici_tau/test_tau_sf_xs_loftr.png)
-*Fig 6.7: Performance su SF-XS Test con $\tau=15$. Il sistema dimostra un'ottima capacità di generalizzazione nel risparmio computazionale.*
+### 6.4.1 SF-XS Test
 
-| Metodo | Tau ($\tau$) | Recall@1 | Risparmio (Saving) |
-| :--- | :--- | :--- | :--- |
-| **LoFTR** | **15** | **28.70%** | **55.25%** |
-
-**Analisi e Conclusioni:**
-I risultati su SF-XS Test confermano la **robustezza** del parametro scelto.
-Il dato chiave è il **Risparmio Computazionale del 55.25%**: questo valore è estremamente vicino a quello ottenuto in fase di validazione (61.74%), indicando che la distribuzione degli inlier per le query "facili" è coerente all'interno dello stesso dominio urbano.
-Il sistema riesce a tagliare oltre la metà del tempo di calcolo, mantenendo una Recall@1 del 28.70%. Sebbene vi sia un gap di performance rispetto al re-ranking totale (il massimo teorico visibile nel grafico è circa 49%), la strategia adattiva offre un compromesso ideale per applicazioni real-time, dove dimezzare la latenza è prioritario.
-
-# 6.5 Valutazione su Tokyo-XS Test (LoFTR)
-
-Concludiamo la fase di testing valutando la capacità di generalizzazione su un dominio geografico completamente diverso: **Tokyo eXtra Small (Tokyo-XS)**.
-L'ambiente urbano di Tokyo presenta caratteristiche uniche rispetto a Pittsburgh e San Francisco, rendendo questo test fondamentale per validare l'universalità della soglia $\tau=15$.
-
-![Test Tokyo-XS LoFTR](grafici_tau/test_tau_tokyo_loftr.png)
-*Fig 6.8: Performance su Tokyo-XS Test con $\tau=15$. Il sistema mantiene un comportamento coerente anche in un dominio asiatico.*
+![Test SF-XS](grafici_tau/test_tau_sf_xs_loftr.png)
 
 | Metodo | Tau ($\tau$) | Recall@1 | Risparmio (Saving) |
 | :--- | :--- | :--- | :--- |
-| **LoFTR** | **15** | **46.98%** | **52.29%** |
+| **LoFTR** | **10** | **33.30%** | **76.99%** |
 
-**Analisi e Conclusioni:**
-I risultati su Tokyo confermano definitivamente la validità dell'approccio.
-Il **Risparmio Computazionale si attesta al 52.29%**, un valore estremamente coerente con quanto osservato su SF-XS (55.25%). Questo dimostra che la soglia di 15 inlier rappresenta un "confine di confidenza" robusto e trasversale a diverse città: indipendentemente dal luogo, se il Global Retrieval trova almeno 15 match geometrici con LoFTR, è statisticamente sicuro fidarsi del risultato.
-Con una Recall@1 del **46.98%** e i tempi di calcolo dimezzati, il sistema LoFTR adattivo si dimostra pronto per l'impiego in scenari reali multi-città.
+**Analisi:**
+Su San Francisco Test, otteniamo un **risparmio massiccio del 76.99%**. Il sistema identifica correttamente che la maggior parte delle query sono "Facili" per NetVLAD in questo dataset, riducendo drasticamente i tempi di latenza senza bisogno di ri-addestramento.
 
+### 6.4.2 Tokyo-XS Test
 
-## 6.6 Discussione Finale: Adaptive vs Standard Re-ranking
+![Test Tokyo-XS](grafici_tau/test_tau_tokyo_loftr.png)
 
-Confrontiamo infine i risultati ottenuti dalla nostra strategia Adaptive ($\tau=15$) con le prestazioni del re-ranking Standard (esaustivo su tutti i candidati) riportate in letteratura [Tabella Baseline].
+| Metodo | Tau ($\tau$) | Recall@1 | Risparmio (Saving) |
+| :--- | :--- | :--- | :--- |
+| **LoFTR** | **10** | **56.83%** | **73.20%** |
 
-| Dataset | Standard R@1 (LoFTR) | Adaptive R@1 (LoFTR, $\tau=15$) | Gap Recall | **Risparmio Tempo** |
-| :--- | :--- | :--- | :--- | :--- |
-| **SF-XS Test** | 53.6% | 28.70% | -24.9% | **55.25%** |
-| **SVOX Sun** | 61.6% | 44.03% | -17.6% | **42.43%** |
-| **Tokyo-XS** | 68.3% | 46.98% | -21.3% | **52.29%** |
+**Analisi:**
+Anche a Tokyo, un ambiente visivamente molto denso e diverso dagli USA, la soglia 10 si rivela robusta. Il **risparmio è del 73.20%** con una Recall molto alta del **56.83%**. Questo dimostra l'universalità del parametro geometrico: 10 inlier sono una "firma di correttezza" valida trasversalmente a diverse città.
 
-**Interpretazione del Trade-off:**
-Osserviamo un calo sistematico della Recall@1 rispetto all'approccio Standard. Questo fenomeno è intrinseco alla natura dell'Adaptive Re-ranking:
-1.  **Falsi Positivi "Easy":** Il calo è causato dai casi in cui il primo candidato (Rank 0) è errato, ma supera comunque la soglia di 15 inlier. In questi casi, il sistema "si fida" erroneamente e non esplora gli altri candidati nella lista di retrieval, dove potrebbe trovarsi il match corretto.
-2.  **Il Prezzo dell'Efficienza:** A fronte di una perdita di Recall (circa 17-25%), otteniamo un vantaggio operativo enorme: il sistema è **due volte più veloce** (risparmio ~50%).
-3.  **Conclusione:** La soglia $\tau=15$ rappresenta il punto di equilibrio (best F1-score). Alzare la soglia recupererebbe la Recall persa, ma annullerebbe il risparmio computazionale, trasformando il sistema in un re-ranking standard. La strategia proposta è quindi ideale per scenari a risorse limitate dove la latenza è critica.
+---
+
+## 6.5 Conclusioni Finali: Adaptive Re-ranking ($\tau=10$)
+
+La tabella seguente riassume l'impatto della strategia adattiva con $\tau=10$ sui tre dataset di test principali.
+
+| Dataset | Adaptive Recall@1 | Risparmio Tempo | Valutazione |
+| :--- | :--- | :--- | :--- |
+| **SF-XS Test** | 33.30% | **76.99%** | Alta Efficienza |
+| **Tokyo-XS** | 56.83% | **73.20%** | Ottimo Bilanciamento |
+| **SVOX Sun** | 46.84% | **63.48%** | Risparmio Significativo |
+| **SVOX Night** | 20.78% | **26.42%** | Adattamento alla Difficoltà |
+
+**Sintesi:**
+L'introduzione della soglia adattiva **$\tau=10$** ha trasformato il sistema:
+1.  **Velocità:** In scenari urbani standard (giorno), il sistema è **4 volte più veloce** (risparmio ~75%) rispetto al re-ranking esaustivo.
+2.  **Intelligenza:** Il sistema non applica ciecamente l'ottimizzazione; quando le condizioni si fanno critiche (Notte), sacrifica il risparmio per proteggere la precisione.
+3.  **Generalizzazione:** Il parametro non richiede tuning specifico per ogni città, rendendo l'approccio scalabile per applicazioni reali.
