@@ -40,9 +40,9 @@
 
 | Dataset | Numero Query | Latenza Global (MegaLoc) | Latenza Re-ranking (SP+LG) | Latenza Re-ranking (SuperGlue) | Latenza Re-ranking (LoFTR) | Fattore Rallentamento (MegaLoc vs LoFTR) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **sf_xs** | 1000 | 0.10 | 3.51s | 1.46s | 3.50 | ~35x |
-| **tokyo_xs** | 315 | 0.10s | 3.49s | 1.48s | 3.49 | ~34.9x |
-| **svox_night** | 823 | 0.10s | 3.53s | 1.50s | 3.48 | ~34.8x |
+| **sf_xs** | 1000 | 0.10s | 3.51s | 1.46s | 3.50s | ~35x |
+| **tokyo_xs** | 315 | 0.10s | 3.49s | 1.48s | 3.49s | ~34.9x |
+| **svox_night** | 823 | 0.10s | 3.53s | 1.50s | 3.48s | ~34.8x |
 | **svox_sun** | 854 | 0.10s | 3.45s | 1.52s | 3.42s | ~34.2x |
 
 
