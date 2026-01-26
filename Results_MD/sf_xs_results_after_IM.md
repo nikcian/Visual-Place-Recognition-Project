@@ -12,7 +12,7 @@ In questa sezione vengono confrontate le performance del metodo di retrieval (Ne
 
 | Metodo | R@1 | R@5 | R@10 | R@20 | Tempo per Query (ms) | Tempo Impiegato | s/it|
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **NetVLAD (Base)** | 27.2 | 43.8 | 50.3 | 56.2 | <100 | | |
+| **NetVLAD (Base)** | 27.2 | 43.8 | 50.3 | 56.2 | <100 | 2.58 | |
 | **NetVLAD + LightGlue** | **53.2** | 55.4 | 55.8 | 56.2 | 3170 | 52.51 | 3.17 |
 | **NetVLAD + SuperGlue** | **52.4** | 55.3 | 55.8 | 56.2 | 1390 | 23.16 | 1.40 |
 | **NetVLAD + LoFTR** | **53.6** | 55.3 | 55.8 | 56.2 | 3500 | 59.39 | 3.58 |
