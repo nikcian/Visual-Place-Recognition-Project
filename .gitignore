@@ -172,3 +172,11 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# --- PROJECT SPECIFIC IGNORES ---
+# Ignora la cartella con i dataset (immagini pesanti)
+data/
+
+# Ignora eventuali cartelle di output generate dagli script
+outputs/
+results/

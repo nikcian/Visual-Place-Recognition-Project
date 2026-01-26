@@ -1,6 +1,9 @@
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
+from datetime import datetime
 import parser
 import sys
-from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -18,6 +21,10 @@ from test_dataset import TestDataset
 
 def main(args):
     start_time = datetime.now()
+
+    # Fix for apple silicon 
+    logger.info("Forcing FAISS to single thread to avoid SegFault on M-series chips")
+    faiss.omp_set_num_threads(1)
 
     logger.remove()  # Remove possibly previously existing loggers
     log_dir = Path("logs") / args.log_dir / start_time.strftime("%Y-%m-%d_%H-%M-%S")
@@ -50,23 +57,46 @@ def main(args):
             dataset=database_subset_ds, num_workers=args.num_workers, batch_size=args.batch_size
         )
         all_descriptors = np.empty((len(test_ds), args.descriptors_dimension), dtype="float32")
-        for images, indices in tqdm(database_dataloader):
-            descriptors = model(images.to(args.device))
-            descriptors = descriptors.cpu().numpy()
-            all_descriptors[indices.numpy(), :] = descriptors
 
         logger.debug("Extracting queries descriptors for evaluation/testing using batch size 1")
         queries_subset_ds = Subset(
             test_ds, list(range(test_ds.num_database, test_ds.num_database + test_ds.num_queries))
         )
         queries_dataloader = DataLoader(dataset=queries_subset_ds, num_workers=args.num_workers, batch_size=1)
-        for images, indices in tqdm(queries_dataloader):
-            descriptors = model(images.to(args.device))
-            descriptors = descriptors.cpu().numpy()
-            all_descriptors[indices.numpy(), :] = descriptors
+
+        # One single progress bar (db + queries)
+        total_batches = len(database_dataloader) + len(queries_dataloader)
+        pbar = tqdm(
+            total=total_batches,
+            desc="Extracting descriptors (db+q)",
+            dynamic_ncols=True,
+            leave=False,          # do not leave a line per run
+            unit="batch",
+            mininterval=0.5,      # reduce refresh spam
+        )
+
+        try:
+            for images, indices in database_dataloader:
+                descriptors = model(images.to(args.device))
+                descriptors = descriptors.cpu().numpy()
+                all_descriptors[indices.numpy(), :] = descriptors
+                pbar.update(1)
+
+            for images, indices in queries_dataloader:
+                descriptors = model(images.to(args.device))
+                descriptors = descriptors.cpu().numpy()
+                all_descriptors[indices.numpy(), :] = descriptors
+                pbar.update(1)
+        finally:
+            pbar.close()
 
     queries_descriptors = all_descriptors[test_ds.num_database :]
     database_descriptors = all_descriptors[: test_ds.num_database]
+
+    if args.faiss_method == "ip":
+        logger.info("Normalizing descriptors for Inner Product (Cosine Similarity)")
+        faiss.normalize_L2(queries_descriptors)
+        faiss.normalize_L2(database_descriptors)
 
     if args.save_descriptors:
         logger.info(f"Saving the descriptors in {log_dir}")
@@ -74,7 +104,13 @@ def main(args):
         np.save(log_dir / "database_descriptors.npy", database_descriptors)
 
     # Use a kNN to find predictions
-    faiss_index = faiss.IndexFlatL2(args.descriptors_dimension)
+    if args.faiss_method == "l2":
+        logger.info("Using L2 (Euclidean) distance")
+        faiss_index = faiss.IndexFlatL2(args.descriptors_dimension)
+    elif args.faiss_method == "ip":
+        logger.info("Using Inner Product (Dot Product)")
+        faiss_index = faiss.IndexFlatIP(args.descriptors_dimension)
+    
     faiss_index.add(database_descriptors)
     del database_descriptors, all_descriptors
 
@@ -87,7 +123,7 @@ def main(args):
         recalls = np.zeros(len(args.recall_values))
         for query_index, preds in enumerate(predictions):
             for i, n in enumerate(args.recall_values):
-                if np.any(np.in1d(preds[:n], positives_per_query[query_index])):
+                if np.any(np.isin(preds[:n], positives_per_query[query_index])):
                     recalls[i:] += 1
                     break
 
