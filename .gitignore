@@ -180,3 +180,6 @@ data/
 # Ignora eventuali cartelle di output generate dagli script
 outputs/
 results/
+
+# Other
+.DS_Store
