@@ -74,9 +74,19 @@ def generate_plots(csv_path, dataset_name, matcher_name):
 files_to_process = [
     ("logs/outputs/sf_xs/mixvpr/2025-12-20_12-44-53/stats_preds_superpoint-lg.csv", "SF_XS", "LightGlue"),
     ("logs/outputs/sf_xs/mixvpr/2025-12-20_12-44-53/stats_preds_loftr.csv", "SF_XS", "LoFTR"),
+    ("logs/outputs/sf_xs/mixvpr/2025-12-20_12-44-53/stats_preds_superglue.csv", "SF_XS", "SuperGlue"),
+    
     ("logs/outputs/tokyo_xs/mixvpr/2025-12-20_12-49-29/stats_preds_loftr.csv", "Tokyo", "LoFTR"),
+    ("logs/outputs/tokyo_xs/mixvpr/2025-12-20_12-49-29/stats_preds_superglue.csv", "Tokyo", "SuperGlue"),
+    ("logs/outputs/tokyo_xs/mixvpr/2025-12-20_12-49-29/stats_preds_superpoint-lg.csv", "Tokyo", "LightGlue"),
+    
     ("logs/outputs/svox_night/mixvpr/2025-12-20_12-55-26/stats_preds_loftr.csv", "SVOX_Night", "LoFTR"),
-    ("logs/outputs/svox_sun/mixvpr/2025-12-20_12-51-56/stats_preds_loftr.csv", "SVOX_Sun", "LoFTR")
+    ("logs/outputs/svox_night/mixvpr/2025-12-20_12-55-26/stats_preds_superglue.csv", "SVOX_Night", "SuperGlue"),
+    ("logs/outputs/svox_night/mixvpr/2025-12-20_12-55-26/stats_preds_superpoint-lg.csv", "SVOX_Night", "LightGlue"),
+    
+    ("logs/outputs/svox_sun/mixvpr/2025-12-20_12-51-56/stats_preds_loftr.csv", "SVOX_Sun", "LoFTR"),
+    ("logs/outputs/svox_sun/mixvpr/2025-12-20_12-51-56/stats_preds_superglue.csv", "SVOX_Sun", "SuperGlue"),
+    ("logs/outputs/svox_sun/mixvpr/2025-12-20_12-51-56/stats_preds_superpoint-lg.csv", "SVOX_Sun", "LightGlue"),
 ]
 
 for path, ds, mt in files_to_process:
