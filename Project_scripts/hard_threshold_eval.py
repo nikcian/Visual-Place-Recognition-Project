@@ -24,10 +24,6 @@ TORCH_FOLDER = os.path.join(BASE_PATH, "preds_superpoint-lg")
 
 FINAL_STATS_CSV = os.path.join(BASE_PATH, "stats_preds_superpoint-lg.csv")  
 
-
-TIME_GLOBAL = 0.20
-TIME_RERANK = 3.20
-
 FBETA = 2.0
 
 # ==============================================================================
@@ -169,64 +165,31 @@ def fbeta_like(recall01: float, saving01: float, beta: float = 2.0) -> float:
 
 def run_simulation(df: pd.DataFrame) -> pd.DataFrame:
     """
-    df must have:
-      - inliers_rank0
-      - retrieval_is_correct
-      - final_is_correct
-
-    Decision:
-      easy if inliers_rank0 > tau  -> skip rerank -> use retrieval_is_correct
-      hard otherwise              -> do rerank   -> use final_is_correct
-
-    Include:
-      tau = -1          -> all easy  -> retrieval-only
-      tau = max_inl + 1 -> all hard  -> re-rank always
+    Simulazione universale: il saving% rappresenta la percentuale 
+    di processi di re-ranking evitati grazie alla soglia tau.
     """
-    required = {"inliers_rank0", "retrieval_is_correct", "final_is_correct"}
-    miss = required - set(df.columns)
-    if miss:
-        raise ValueError(f"Missing columns: {miss}")
-
     total = len(df)
     max_inl = int(df["inliers_rank0"].max())
+    taus = np.unique(np.concatenate([[-1], np.arange(0, max_inl + 2)]))
 
-    taus = np.unique(np.concatenate([
-        np.array([-1]),
-        np.arange(0, max_inl + 1, 1),
-        np.array([max_inl + 1]),
-    ]))
-
-    full_time = total * (TIME_GLOBAL + TIME_RERANK)
-
-    recalls = []
-    savings = []
-    f2s = []
-
-    r_ret = df["retrieval_is_correct"].values
-    r_final = df["final_is_correct"].values
-    inl = df["inliers_rank0"].values
-
+    results = []
     for tau in taus:
-        is_easy = inl > tau
-
-        hits = np.where(is_easy, r_ret, r_final).sum()
+        
+        is_easy = df["inliers_rank0"].values > tau
+        
+        
+        hits = np.where(is_easy, df["retrieval_is_correct"], df["final_is_correct"]).sum()
         recall = (hits / total) * 100.0
 
-        n_easy = int(is_easy.sum())
-        n_hard = total - n_easy
-        exec_time = (n_easy * TIME_GLOBAL) + (n_hard * (TIME_GLOBAL + TIME_RERANK))
-        saving = (1.0 - (exec_time / full_time)) * 100.0
+        
+        saving = (is_easy.sum() / total) * 100.0
 
-        # F2-like
-        R = recall / 100.0
-        S = saving / 100.0
-        f2 = fbeta_like(R, S, beta=FBETA)
+        r_norm, s_norm = recall / 100.0, saving / 100.0
+        f2 = (1 + FBETA**2) * (r_norm * s_norm) / (FBETA**2 * s_norm + r_norm + 1e-12)
 
-        recalls.append(recall)
-        savings.append(saving)
-        f2s.append(f2)
+        results.append({"tau": tau, "recall@1": recall, "saving%": saving, "f2": f2})
 
-    return pd.DataFrame({"tau": taus, "recall@1": recalls, "saving%": savings, "f2": f2s})
+    return pd.DataFrame(results)
 
 def print_table(out: pd.DataFrame, step: int = 5):
     print(f"\n--- TRADE-OFF TABLE ({DATASET_NAME}) ---")
