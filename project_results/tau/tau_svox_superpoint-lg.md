@@ -124,7 +124,7 @@ Tau    | Recall@1  | Saving  | F2       | Note
 ----------------------------------------------------------------------
 
 
-scelta: tau= **10** e tau = 15
+scelta: tau= **10**
 
 --- TRADE-OFF TABLE (sf_xs (Validation)) ---
 Tau    | Recall@1  | Saving  | F2       | Note
