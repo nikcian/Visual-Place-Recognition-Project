@@ -11,15 +11,30 @@ Analizziamo il comportamento del sistema sul dataset di training diurno.
 
 **Tabella di Trade-off (SVOX Sun Train)**
 
-| Tau ($\tau$) | Recall@1 | Saving | F2-Score | Note |
-| :--- | :--- | :--- | :--- | :--- |
-| 0 | 29.63% | 93.99% | 0.3434 | |
-| 5 | 29.78% | 92.66% | 0.3445 | |
-| 10 | 42.84% | 52.74% | 0.4451 | |
-| **12** | **46.49%** | **40.58%** | **0.4517** | ⭐ **BEST** |
-| 15 | 48.88% | 32.91% | 0.4456 | |
-| 20 | 50.28% | 29.48% | 0.4406 | |
-| 25 | 50.56% | 28.29% | 0.4368 | |
+| Tau | Recall | Saving | F2-Score | Note |
+| :---: | :---: | :---: | :---: | :--- |
+| 0 | 29.63% | 99.86% | 0.3449 | |
+| 5 | 29.78% | 98.46% | 0.3460 | |
+| 10 | 42.84% | 56.04% | 0.4496 | |
+| **12** | **46.49%** | **43.12%** | **0.4577** | **⭐ BEST** |
+| 15 | 48.88% | 34.97% | 0.4528 | |
+| 20 | 50.28% | 31.32% | 0.4485 | |
+| 25 | 50.56% | 30.06% | 0.4449 | |
+| 30 | 50.84% | 28.93% | 0.4416 | |
+| 35 | 50.84% | 28.51% | 0.4396 | |
+| 40 | 51.12% | 27.39% | 0.4357 | |
+| 45 | 51.12% | 27.39% | 0.4357 | |
+| 50 | 51.26% | 26.97% | 0.4344 | |
+| 55 | 51.26% | 26.69% | 0.4329 | |
+| 60 | 51.26% | 26.40% | 0.4314 | |
+| 65 | 51.40% | 26.12% | 0.4307 | |
+| 70 | 51.40% | 25.56% | 0.4276 | |
+| 75 | 51.40% | 25.28% | 0.4260 | |
+| 80 | 51.40% | 24.86% | 0.4236 | |
+| 85 | 51.40% | 24.44% | 0.4211 | |
+| 90 | 51.40% | 24.02% | 0.4186 | |
+| 95 | 51.40% | 23.88% | 0.4177 | |
+| 100 | 51.40% | 22.89% | 0.4115 | |
 
 **Analisi:**
 Il punto di ottimo matematico si trova a **$\tau = 12$**.
@@ -38,13 +53,29 @@ Lo scenario notturno rappresenta il "caso peggiore", dove il retrieval globale �
 
 **Tabella di Trade-off (SVOX Night Train)**
 
-| Tau ($\tau$) | Recall@1 | Saving | F2-Score | Note |
-| :--- | :--- | :--- | :--- | :--- |
-| 0 | 3.13% | 94.12% | 0.0389 | |
-| 5 | 3.28% | 92.37% | 0.0406 | |
-| **10** | **11.25%** | **21.05%** | **0.1241** | ⭐ **BEST** |
-| 15 | 13.39% | 3.89% | 0.0899 | |
-| 20 | 13.53% | 2.68% | 0.0748 | |
+| Tau | Recall | Saving | F2-Score | Note |
+| :---: | :---: | :---: | :---: | :--- |
+| 0 | 3.13% | 100.00% | 0.0389 | |
+| 5 | 3.28% | 98.15% | 0.0406 | |
+| **10** | **11.25%** | **22.36%** | **0.1250** | **⭐ BEST** |
+| 15 | 13.39% | 4.13% | 0.0925 | |
+| 20 | 13.53% | 2.85% | 0.0773 | |
+| 25 | 13.53% | 2.42% | 0.0706 | |
+| 30 | 13.68% | 2.28% | 0.0684 | |
+| 35 | 13.68% | 1.99% | 0.0630 | |
+| 40 | 13.68% | 1.85% | 0.0601 | |
+| 45 | 13.68% | 1.85% | 0.0601 | |
+| 50 | 13.68% | 1.57% | 0.0537 | |
+| 55 | 13.68% | 1.57% | 0.0537 | |
+| 60 | 13.68% | 1.42% | 0.0503 | |
+| 65 | 13.68% | 1.42% | 0.0503 | |
+| 70 | 13.68% | 1.28% | 0.0466 | |
+| 75 | 13.68% | 1.14% | 0.0427 | |
+| 80 | 13.68% | 1.14% | 0.0427 | |
+| 85 | 13.68% | 1.14% | 0.0427 | |
+| 90 | 13.68% | 1.14% | 0.0427 | |
+| 95 | 13.68% | 1.14% | 0.0427 | |
+| 100 | 13.68% | 1.14% | 0.0427 | |
 
 **Analisi e Scelta della Soglia Operativa:**
 * Il picco dell'F2-Score si trova a **$\tau = 10$**.
@@ -66,10 +97,10 @@ Validiamo la scelta di **$\tau = 10$** sul dataset di validazione San Francisco 
 
 | Metodo | Tau Scelto | Recall@1 | Risparmio (Saving) | Note |
 | :--- | :--- | :--- | :--- | :--- |
-| **LoFTR** | **10** | **52.70%** | **78.49%** | ⬅️ **CHOSEN** |
+| **LoFTR** | **10** | **52.70%** | **83.40%** | ⬅️ **CHOSEN** |
 
 **Discussione:**
-La validazione conferma l'efficacia della soglia. Su SF-XS, $\tau=10$ permette un **risparmio eccezionale del 78.49%**. Questo indica che in questo ambiente urbano il Global Retrieval (NetVLAD) è spesso corretto e LoFTR lo conferma facilmente superando i 10 inlier, permettendo al sistema di saltare il re-ranking quasi nell'80% dei casi.
+La validazione conferma l'efficacia della soglia. Su SF-XS, $\tau=10$ permette un **risparmio eccezionale del 83.40%**. Questo indica che in questo ambiente urbano il Global Retrieval (NetVLAD) è spesso corretto e LoFTR lo conferma facilmente superando i 10 inlier, permettendo al sistema di saltare il re-ranking quasi nell'80% dei casi.
 
 ---
 
