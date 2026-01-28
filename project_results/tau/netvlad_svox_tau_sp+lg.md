@@ -3,7 +3,7 @@
 Analogamente a quanto fatto per LoFTR, in questa sezione analizziamo il comportamento di **SuperPoint + LightGlue** sul dataset **SVOX Sun Train**. 
 L'obiettivo è individuare la soglia di inlier $\tau$ che massimizzi l'F2-Score, garantendo il miglior compromesso tra il recupero delle query difficili e il risparmio di tempo.
 
-![Trade-off Recall vs Saving SP+LG Sun](grafici_tau/tau_svox_sun_train_sp+lg.png)
+![Trade-off Recall vs Saving SP+LG Sun](/plots/Hard%20Thresholding/NETVLAD/tau_svox_sun_train_sp+lg.png)
 *Fig 6.2: Trade-off tra Recall@1 (Blu) e Risparmio Computazionale (Verde) per SuperPoint+LightGlue su SVOX Sun.*
 
 ### Analisi dei Dati e Tabella di Trade-off
@@ -53,7 +53,7 @@ Selezioniamo **$\tau = 10$** come valore operativo ideale per lo scenario diurno
 
 Concludiamo la fase di training analizzando il comportamento sul dataset notturno **SVOX Night Train**.
 
-![Trade-off Recall vs Saving Night SP+LG](grafici_tau/tau_svox_night_train_sp+lg.png)
+![Trade-off Recall vs Saving Night SP+LG](/plots/Hard%20Thresholding/NETVLAD/tau_svox_night_train_sp+lg.png)
 *Fig 6.4: Trade-off su SVOX Night Train (SP+LG).*
 
 ### Analisi dei Dati e Tabella di Trade-off
@@ -100,7 +100,7 @@ Considerando che l'ottimo per il giorno è **10** e l'ottimo per la notte è **9
 
 Proseguiamo la validazione applicando la soglia scelta **$\tau=10$** al matcher **SuperPoint + LightGlue** sul dataset di validazione di San Francisco.
 
-![Validazione SF-XS SP+LG](grafici_tau/validation_tau_sf_xs_val_sp+lg.png)
+![Validazione SF-XS SP+LG](/plots/Hard%20Thresholding/NETVLAD/validation_tau_sf_xs_val_sp+lg.png)
 
 | Metodo | Tau Scelto ($\tau$) | Recall@1 | Risparmio (Saving) | Note |
 | :--- | :--- | :--- | :--- | :--- |
@@ -118,7 +118,7 @@ Analizziamo ora le prestazioni di **SuperPoint + LightGlue** sui dataset di test
 
 ### SVOX Sun Test
 
-![Test SVOX Sun SP+LG](grafici_tau/test_tau_svox_sun_sp+lg.png)
+![Test SVOX Sun SP+LG](/plots/Hard%20Thresholding/NETVLAD/test_tau_svox_sun_sp+lg.png)
 
 | Tau | Recall | Saving | F2-Score | Note |
 | :---: | :---: | :---: | :---: | :--- |
@@ -149,7 +149,7 @@ Risultato eccellente di giorno: **Risparmio > 54.57%** e Recall del **53.04%**. 
 
 ### SVOX Night Test
 
-![Test SVOX Night SP+LG](grafici_tau/test_tau_svox_night_sp+lg.png)
+![Test SVOX Night SP+LG](/plots/Hard%20Thresholding/NETVLAD/test_tau_svox_night_sp+lg.png)
 
 | Tau | Recall | Saving | F2-Score | Note |
 | :---: | :---: | :---: | :---: | :--- |
@@ -184,7 +184,7 @@ Di notte, il sistema reagisce correttamente alla difficoltà. Il risparmio scend
 
 Analizziamo le prestazioni sul dataset di test urbano **SF-XS Test** con $\tau=10$.
 
-![Test SF-XS SP+LG](grafici_tau/test_tau_sf_xs_sp+lg.png)
+![Test SF-XS SP+LG](/plots/Hard%20Thresholding/NETVLAD/test_tau_sf_xs_sp+lg.png)
 
 | Tau | Recall | Saving | F2-Score | Note |
 | :---: | :---: | :---: | :---: | :--- |
@@ -219,7 +219,7 @@ Su SF-XS Test, otteniamo un buon bilanciamento: **Risparmio del 44%** e Recall d
 
 Concludiamo l'intera fase sperimentale testando **SuperPoint + LightGlue** sul dataset **Tokyo-XS**.
 
-![Test Tokyo-XS SP+LG](grafici_tau/test_tau_tokyo_sp+lg.png)
+![Test Tokyo-XS SP+LG](/plots/Hard%20Thresholding/NETVLAD/test_tau_tokyo_sp+lg.png)
 
 | Tau | Recall | Saving | F2-Score | Note |
 | :---: | :---: | :---: | :---: | :--- |

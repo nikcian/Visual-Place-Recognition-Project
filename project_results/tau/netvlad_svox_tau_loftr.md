@@ -6,7 +6,7 @@ In questa sezione determiniamo la soglia ottimale di inlier ($\tau$) per disting
 
 Analizziamo il comportamento del sistema sul dataset di training diurno.
 
-![Trade-off Recall vs Saving Sun](grafici_tau/tau_svox_sun_train_loftr.png)
+![Trade-off Recall vs Saving Sun](/plots/Hard%20Thresholding/NETVLAD/tau_svox_sun_train_loftr.png)
 *Fig 6.1: Trade-off su SVOX Sun Train. Il picco dell'F2-Score identifica il miglior bilanciamento.*
 
 **Tabella di Trade-off (SVOX Sun Train)**
@@ -48,7 +48,7 @@ Il punto di ottimo matematico si trova a **$\tau = 12$**.
 
 Lo scenario notturno rappresenta il "caso peggiore", dove il retrieval globale è meno affidabile e i match geometrici sono più scarsi.
 
-![Trade-off Recall vs Saving Night](grafici_tau/tau_svox_night_train_loftr.png)
+![Trade-off Recall vs Saving Night](/plots/Hard%20Thresholding/NETVLAD/tau_svox_night_train_loftr.png)
 *Fig 6.2: Trade-off su SVOX Night Train. Si nota la necessità di abbassare la soglia per mantenere un minimo di efficienza.*
 
 **Tabella di Trade-off (SVOX Night Train)**
@@ -91,7 +91,7 @@ Sebbene l'ottimo per il giorno sia 12, scegliamo **$\tau = 10$** come soglia glo
 
 Validiamo la scelta di **$\tau = 10$** sul dataset di validazione San Francisco (SF-XS Val), mai visto durante l'analisi.
 
-![Validazione SF-XS](grafici_tau/validation_tau_sf_xs_val_loftr.png)
+![Validazione SF-XS](/plots/Hard%20Thresholding/NETVLAD/validation_tau_sf_xs_val_loftr.png)
 
 **Risultati Validazione**
 
@@ -110,7 +110,7 @@ Applichiamo ora la soglia congelata **$\tau = 10$** ai dataset di test di Pittsb
 
 ### 6.3.1 SVOX Sun Test
 
-![Test SVOX Sun](grafici_tau/test_tau_svox_sun_loftr.png)
+![Test SVOX Sun](/plots/Hard%20Thresholding/NETVLAD/test_tau_svox_sun_loftr.png)
 
 | Tau | Recall | Saving | F2-Score | Note |
 | :---: | :---: | :---: | :---: | :--- |
@@ -141,7 +141,7 @@ Il sistema si comporta in modo eccellente di giorno, garantendo un **risparmio d
 
 ### 6.3.2 SVOX Night Test
 
-![Test SVOX Night](grafici_tau/test_tau_svox_night_loftr.png)
+![Test SVOX Night](/plots/Hard%20Thresholding/NETVLAD/test_tau_svox_night_loftr.png)
 
 | Tau | Recall | Saving | F2-Score | Note |
 | :---: | :---: | :---: | :---: | :--- |
@@ -178,7 +178,7 @@ Verifichiamo la capacità di generalizzazione geografica della soglia **$\tau = 
 
 ### 6.4.1 SF-XS Test
 
-![Test SF-XS](grafici_tau/test_tau_sf_xs_loftr.png)
+![Test SF-XS](/plots/Hard%20Thresholding/NETVLAD/test_tau_sf_xs_loftr.png)
 
 | Tau | Recall | Saving | F2-Score | Note |
 | :---: | :---: | :---: | :---: | :--- |
@@ -209,7 +209,7 @@ Su San Francisco Test, otteniamo un **risparmio massiccio del 81.80%** con una r
 
 ### 6.4.2 Tokyo-XS Test
 
-![Test Tokyo-XS](grafici_tau/test_tau_tokyo_loftr.png)
+![Test Tokyo-XS](/plots/Hard%20Thresholding/NETVLAD/test_tau_tokyo_loftr.png)
 
 | Tau | Recall | Saving | F2-Score | Note |
 | :---: | :---: | :---: | :---: | :--- |
